@@ -18,6 +18,7 @@ import com.mihraya.app.playback.PlayerConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -50,6 +51,9 @@ class AppContainer(private val app: Application) {
     val audioDownloads = AudioDownloads(app)
     val player = PlayerConnection(app, appScope, library, audioDownloads)
     val alarms = PrayerAlarmScheduler(app, prayerCalculator)
+
+    /** Android 15 refuses audio focus to services started by an alarm, so recitation pauses on this signal instead. */
+    val adhanPlaying = MutableStateFlow(false)
 
     fun schedule(settings: AppSettings): PrayerSchedule? =
         settings.location?.let { PrayerSchedule(prayerCalculator, it, settings.prayer) }

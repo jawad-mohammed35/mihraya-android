@@ -83,6 +83,7 @@ class AdhanService : Service() {
             notification,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0,
         )
+        appContainer.adhanPlaying.value = true
         scope.launch {
             val alerts = appContainer.settings.current().alerts
             play(soundUri(this@AdhanService, alerts))
@@ -126,6 +127,7 @@ class AdhanService : Service() {
 
     private fun finish() {
         releasePlayer()
+        appContainer.adhanPlaying.value = false
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
         val prayer = salah
         val settings = appContainer.settings.state.value
@@ -151,6 +153,7 @@ class AdhanService : Service() {
 
     override fun onDestroy() {
         releasePlayer()
+        appContainer.adhanPlaying.value = false
         scope.cancel()
         super.onDestroy()
     }

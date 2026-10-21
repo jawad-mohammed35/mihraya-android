@@ -5,14 +5,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,7 +28,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,7 +56,6 @@ fun AppearanceScreen(onBack: () -> Unit) {
     val settingsState by container.settings.state.collectAsStateWithLifecycle()
     val settings = settingsState ?: return
     val haptics = rememberHaptics()
-    val systemDark = isSystemInDarkTheme()
 
     SettingsScaffold("Appearance", onBack) {
         Column {
@@ -64,14 +63,9 @@ fun AppearanceScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ThemeMode.entries.forEach { mode ->
-                    val dark = when (mode) {
-                        ThemeMode.Dark -> true
-                        ThemeMode.Light -> false
-                        ThemeMode.System -> systemDark
-                    }
                     ThemeCard(
                         mode = mode,
-                        palette = if (dark) darkPalette(settings.accent) else lightPalette(settings.accent),
+                        accent = settings.accent,
                         selected = settings.theme == mode,
                         onClick = {
                             haptics.tap()
@@ -129,7 +123,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
 @Composable
 private fun ThemeCard(
     mode: ThemeMode,
-    palette: MihrayaColors,
+    accent: AccentColor,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -137,6 +131,7 @@ private fun ThemeCard(
     val colors = Mihraya.colors
     val ring by animateColorAsState(if (selected) colors.accent else Color.Transparent, tween(220), label = "themeRing")
     val shape = RoundedCornerShape(22.dp)
+    val palette = if (mode == ThemeMode.Dark) darkPalette(accent) else lightPalette(accent)
     Column(
         modifier
             .border(1.5.dp, ring, shape)
@@ -154,17 +149,18 @@ private fun ThemeCard(
                 .background(palette.background)
                 .border(0.75.dp, palette.glassBorder, RoundedCornerShape(14.dp)),
         ) {
+            MiniScreen(palette, Modifier.fillMaxSize().padding(8.dp))
             if (mode == ThemeMode.System) {
-                val other = if (palette.isDark) lightPalette(AccentColor.Emerald) else darkPalette(AccentColor.Emerald)
+                val dark = darkPalette(accent)
                 Box(
                     Modifier
-                        .align(Alignment.CenterEnd)
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.5f)
-                        .background(other.background),
-                )
+                        .matchParentSize()
+                        .drawWithContent { clipRect(left = size.width / 2f) { this@drawWithContent.drawContent() } }
+                        .background(dark.background),
+                ) {
+                    MiniScreen(dark, Modifier.fillMaxSize().padding(8.dp))
+                }
             }
-            MiniScreen(palette, Modifier.fillMaxSize().padding(8.dp))
         }
         Spacer(Modifier.height(10.dp))
         Text(

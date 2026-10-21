@@ -19,9 +19,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -118,6 +121,20 @@ fun MihrayaRoot(settings: AppSettings, openPlayerRequests: StateFlow<Int>) {
                     .hazeSource(hazeState),
             )
         }
+
+        val statusBar = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(statusBar + 14.dp)
+                .background(
+                    Brush.verticalGradient(
+                        0f to colors.background,
+                        statusBar / (statusBar + 14.dp) to colors.background.copy(alpha = 0.92f),
+                        1f to colors.background.copy(alpha = 0f),
+                    ),
+                ),
+        )
 
         Column(
             modifier = Modifier

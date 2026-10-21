@@ -87,6 +87,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mihraya.app.core.designsystem.components.CircleIconButton
 import com.mihraya.app.core.designsystem.components.HairlineDivider
+import com.mihraya.app.core.designsystem.components.StarShape
 import com.mihraya.app.core.designsystem.components.MihrayaDialog
 import com.mihraya.app.core.designsystem.components.MihrayaSheet
 import com.mihraya.app.core.designsystem.components.PrimaryButton
@@ -455,7 +456,7 @@ private fun SurahHeader(
 
 @Composable
 private fun quranStyle(prefs: ReaderPreferences): TextStyle = TextStyle(
-    fontFamily = ArabicFonts.quran(prefs.arabicFont),
+    fontFamily = ArabicFonts.quran(prefs.arabicFont, prefs.script),
     fontSize = prefs.arabicSize.sp,
     lineHeight = (prefs.arabicSize * prefs.lineHeight).sp,
     textDirection = TextDirection.Rtl,
@@ -603,8 +604,18 @@ private fun SurahFooter(surah: Surah, onOpen: (Int) -> Unit) {
             .padding(horizontal = 22.dp, vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text("صَدَقَ ٱللَّهُ ٱلْعَظِيمُ", style = TextStyle(fontFamily = ArabicFonts.Amiri, fontSize = 20.sp, textDirection = TextDirection.Rtl), color = Mihraya.colors.textTertiary)
-        Spacer(Modifier.height(20.dp))
+        Row(Modifier.widthIn(max = 220.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            HairlineDivider(Modifier.weight(1f))
+            Box(
+                Modifier
+                    .padding(horizontal = 14.dp)
+                    .size(14.dp)
+                    .clip(StarShape)
+                    .background(Mihraya.colors.accent.copy(alpha = 0.7f)),
+            )
+            HairlineDivider(Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(28.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
             if (surah.number > 1) {
                 SecondaryButton(QuranMeta.surah(surah.number - 1).name, onClick = { onOpen(surah.number - 1) }, modifier = Modifier.weight(1f))

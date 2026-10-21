@@ -56,6 +56,10 @@ class AudioDownloadWorker(
         }.build()
 
         applicationContext.appContainer.http.newCall(request).execute().use { response ->
+            if (response.code == HTTP_RANGE_NOT_SATISFIABLE) {
+                part.delete()
+                throw IOException("Partial download was invalid")
+            }
             if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
             val body = response.body ?: throw IOException("Empty body")
             val append = resumeFrom > 0 && response.code == 206
@@ -108,5 +112,6 @@ class AudioDownloadWorker(
     private companion object {
         const val MAX_ATTEMPTS = 3
         const val NOTIFICATION_ID = 4100
+        const val HTTP_RANGE_NOT_SATISFIABLE = 416
     }
 }

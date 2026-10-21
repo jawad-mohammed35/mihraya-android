@@ -122,7 +122,7 @@ fun MoreScreen(onNavigate: (Any) -> Unit) {
 
         item {
             SettingsGroup("Appearance", item) {
-                SettingsValueRow("Theme & accent", "${s.theme.label} · ${s.accent.label}", { onNavigate(AppearanceRoute) }, icon = Icons.Rounded.Palette)
+                SettingsValueRow("Theme", "${s.theme.label} · ${s.accent.label}", { onNavigate(AppearanceRoute) }, icon = Icons.Rounded.Palette)
                 SettingsDivider(indent = true)
                 SettingsSwitchRow(
                     "24-hour time",

@@ -173,7 +173,7 @@ fun TasbihScreen(onBack: () -> Unit) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 28.dp, vertical = 12.dp),
+                .padding(start = 28.dp, end = 28.dp, top = 24.dp, bottom = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (preset.arabic.isNotBlank()) {

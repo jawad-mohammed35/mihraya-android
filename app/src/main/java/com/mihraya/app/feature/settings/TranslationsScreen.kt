@@ -22,6 +22,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +56,19 @@ fun TranslationsScreen(onBack: () -> Unit) {
     val settings = settingsState ?: return
     val active = settings.reader.translations
     var confirmDelete by remember { mutableStateOf<TranslationInfo?>(null) }
+    var showWhenReady by remember { mutableStateOf(emptySet<Int>()) }
+
+    LaunchedEffect(installed, showWhenReady) {
+        val ready = showWhenReady.filter { it in installed }
+        if (ready.isEmpty()) return@LaunchedEffect
+        container.settings.edit { s ->
+            val current = s.reader.translations
+            val room = (MAX_ACTIVE_TRANSLATIONS - current.size).coerceAtLeast(0)
+            val added = ready.filterNot { it in current }.take(room)
+            if (added.isEmpty()) s else s.copy(reader = s.reader.copy(translations = current + added, showTranslation = true))
+        }
+        showWhenReady = showWhenReady - ready.toSet()
+    }
 
     fun toggle(info: TranslationInfo) = container.settings.edit { s ->
         val current = s.reader.translations
@@ -96,6 +110,7 @@ fun TranslationsScreen(onBack: () -> Unit) {
                         download = downloads[info.id],
                         onToggle = { toggle(info) },
                         onDownload = {
+                            showWhenReady = showWhenReady + info.id
                             container.quran.clearDownloadError(info.id)
                             container.quran.downloadTranslation(info.id)
                         },

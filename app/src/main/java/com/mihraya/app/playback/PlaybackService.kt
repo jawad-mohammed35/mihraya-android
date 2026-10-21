@@ -56,6 +56,10 @@ class PlaybackService : MediaSessionService() {
             .setSessionActivity(openApp)
             .setCallback(SessionCallback())
             .build()
+
+        scope.launch {
+            appContainer.adhanPlaying.collect { sounding -> if (sounding) player.pause() }
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session

@@ -80,12 +80,12 @@ class QuranRepository(
         val stream = if (local.exists()) local.inputStream() else context.assets.open("quran/$name.txt")
         val lines = stream.bufferedReader(Charsets.UTF_8).use { it.readLines() }
         check(lines.size == QuranMeta.VERSE_COUNT) { "Edition $name is incomplete" }
-        return lines.toTypedArray()
+        return if (name == INDOPAK) lines.map(IndoPakText::normalize).toTypedArray() else lines.toTypedArray()
     }
 
     private fun scriptEdition(script: QuranScript): String = when (script) {
-        QuranScript.Uthmani -> "uthmani"
-        QuranScript.IndoPak -> "indopak"
+        QuranScript.Uthmani -> UTHMANI
+        QuranScript.IndoPak -> INDOPAK
     }
 
     suspend fun surahVerses(surah: Int, prefs: ReaderPreferences): List<Verse> {
@@ -133,7 +133,7 @@ class QuranRepository(
             val arabic = trimmed.any { it in '\u0600'..'\u06FF' }
             val needle = if (arabic) normalizeArabic(trimmed) else normalizeLatin(trimmed)
             if (needle.length < 3) return@withContext emptyList()
-            val name = if (arabic) "uthmani" else "tr_${if (isAvailable(translationId)) translationId else 20}"
+            val name = if (arabic) UTHMANI else "tr_${if (isAvailable(translationId)) translationId else 20}"
             val source = edition(name)
             val haystack = normalized.get(name) ?: source
                 .map { if (arabic) normalizeArabic(it) else normalizeLatin(it) }
@@ -209,6 +209,8 @@ class QuranRepository(
     private data class TranslationItem(val text: String = "")
 
     private companion object {
+        const val UTHMANI = "uthmani"
+        const val INDOPAK = "indopak"
         val supTag = Regex("<sup[^>]*>.*?</sup>", RegexOption.DOT_MATCHES_ALL)
         val anyTag = Regex("<[^>]+>")
         val whitespace = Regex("\\s+")

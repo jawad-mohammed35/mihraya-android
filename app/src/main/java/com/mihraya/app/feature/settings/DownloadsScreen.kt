@@ -79,7 +79,7 @@ fun DownloadsScreen(onBack: () -> Unit, onManageTranslations: () -> Unit) {
     val totalSurahs = downloaded.values.sumOf { it.size }
 
     SettingsScaffold("Downloads", onBack, subtitle = "Recitations and translations stored offline") {
-        GlassCard(contentPadding = PaddingValues(20.dp)) {
+        GlassCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
             Text("ON THIS DEVICE", style = Mihraya.type.overline, color = Mihraya.colors.accent)
             Spacer(Modifier.height(8.dp))
             Text(
@@ -89,7 +89,8 @@ fun DownloadsScreen(onBack: () -> Unit, onManageTranslations: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "$totalSurahs recited sūrahs · $downloadedTranslations downloaded translations",
+                "${count(totalSurahs, "recited sūrah", "recited sūrahs")} · " +
+                    count(downloadedTranslations, "downloaded translation", "downloaded translations"),
                 style = Mihraya.type.bodySmall,
                 color = Mihraya.colors.textTertiary,
             )
@@ -138,6 +139,8 @@ fun DownloadsScreen(onBack: () -> Unit, onManageTranslations: () -> Unit) {
     }
 }
 
+private fun count(n: Int, one: String, many: String): String = "$n ${if (n == 1) one else many}"
+
 @Composable
 private fun ReciterDownloads(
     reciter: Reciter,
@@ -162,7 +165,7 @@ private fun ReciterDownloads(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Artwork(reciter.hue, title = null, seed = reciter.id.hashCode(), cornerRadius = 14.dp, modifier = Modifier.size(52.dp))
+            Artwork(reciter.hue, title = reciter.arabicShortName, cornerRadius = 14.dp, modifier = Modifier.size(52.dp))
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(reciter.name, style = Mihraya.type.body.copy(fontWeight = FontWeight.SemiBold), color = colors.textPrimary, maxLines = 1)

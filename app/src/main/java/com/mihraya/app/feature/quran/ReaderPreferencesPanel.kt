@@ -79,6 +79,7 @@ fun ReaderPreferencesPanel(
                 ArabicFont.entries.forEach { font ->
                     FontOption(
                         font = font,
+                        script = prefs.script,
                         selected = prefs.arabicFont == font,
                         onClick = { onChange { it.copy(arabicFont = font) } },
                         modifier = Modifier.weight(1f),
@@ -187,7 +188,7 @@ fun ReaderPreferencesPanel(
 }
 
 @Composable
-private fun FontOption(font: ArabicFont, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun FontOption(font: ArabicFont, script: QuranScript, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = Mihraya.colors
     Column(
         modifier
@@ -200,7 +201,7 @@ private fun FontOption(font: ArabicFont, selected: Boolean, onClick: () -> Unit,
         Text(
             "بِسْمِ ٱللَّهِ",
             style = Mihraya.type.body.copy(
-                fontFamily = ArabicFonts.quran(font),
+                fontFamily = ArabicFonts.quran(font, script),
                 fontSize = 22.sp,
                 lineHeight = 40.sp,
                 textDirection = TextDirection.Rtl,
@@ -210,7 +211,12 @@ private fun FontOption(font: ArabicFont, selected: Boolean, onClick: () -> Unit,
             maxLines = 1,
         )
         Spacer(Modifier.height(4.dp))
-        Text(font.label, style = Mihraya.type.caption, color = colors.textSecondary, maxLines = 1)
+        Text(
+            if (font == ArabicFont.AmiriQuran && script == QuranScript.IndoPak) "Amiri" else font.label,
+            style = Mihraya.type.caption,
+            color = colors.textSecondary,
+            maxLines = 1,
+        )
     }
 }
 

@@ -109,7 +109,9 @@ class PrayerCalculator {
         return 2 * r * asin(sqrt(a))
     }
 
-    private fun Date.at(zone: ZoneId): ZonedDateTime = Instant.ofEpochMilli(time).atZone(zone)
+    /** Adhan rounds to the minute but leaves floating-point residue in the milliseconds. */
+    private fun Date.at(zone: ZoneId): ZonedDateTime =
+        Instant.ofEpochMilli(Math.floorDiv(time + 30_000L, 60_000L) * 60_000L).atZone(zone)
 
     private companion object {
         const val KAABA_LAT = 21.4224779

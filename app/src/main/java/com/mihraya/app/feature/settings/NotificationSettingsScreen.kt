@@ -14,7 +14,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,8 +24,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccessAlarm
 import androidx.compose.material.icons.rounded.LibraryMusic
@@ -57,10 +54,10 @@ import com.mihraya.app.core.designsystem.components.CircleIconButton
 import com.mihraya.app.core.designsystem.components.GlassCard
 import com.mihraya.app.core.designsystem.components.NoticeCard
 import com.mihraya.app.core.designsystem.components.OptionSheet
-import com.mihraya.app.core.designsystem.components.Pill
 import com.mihraya.app.core.designsystem.components.RadioDot
 import com.mihraya.app.core.designsystem.components.SecondaryButton
 import com.mihraya.app.core.designsystem.components.SectionLabel
+import com.mihraya.app.core.designsystem.components.SegmentedControl
 import com.mihraya.app.core.designsystem.components.SettingsDivider
 import com.mihraya.app.core.designsystem.components.SettingsGroup
 import com.mihraya.app.core.designsystem.components.SettingsStepperRow
@@ -76,7 +73,6 @@ import com.mihraya.app.data.settings.AlertMode
 import com.mihraya.app.data.settings.AlertPreferences
 import com.mihraya.app.data.settings.AppSettings
 import com.mihraya.app.feature.home.alertOptionsFor
-import com.mihraya.app.feature.home.icon
 import com.mihraya.app.notifications.AdhanService
 import com.mihraya.app.notifications.AlarmEvent
 import com.mihraya.app.notifications.AlarmKind
@@ -162,21 +158,14 @@ fun NotificationSettingsScreen(onBack: () -> Unit) {
                 Text("All five prayers", style = Mihraya.type.body.copy(fontWeight = FontWeight.Medium), color = colors.textPrimary)
                 Spacer(Modifier.height(10.dp))
                 val shared = Salah.entries.filter { it.isPrayer }.map { alerts.modeFor(it) }.distinct().singleOrNull()
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    AlertMode.entries.forEach { mode ->
-                        Pill(
-                            text = mode.label,
-                            selected = mode == shared,
-                            leading = mode.icon(),
-                            onClick = {
-                                update { a -> a.copy(modes = a.modes + Salah.entries.filter { it.isPrayer }.associateWith { mode }) }
-                            },
-                        )
-                    }
-                }
+                SegmentedControl(
+                    options = AlertMode.entries.map { it.label },
+                    selectedIndex = shared?.ordinal ?: -1,
+                    onSelect = { index ->
+                        val mode = AlertMode.entries[index]
+                        update { a -> a.copy(modes = a.modes + Salah.entries.filter { it.isPrayer }.associateWith { mode }) }
+                    },
+                )
             }
             val today = container.schedule(settings)?.let { it.day(it.now().toLocalDate()) }
             Salah.entries.forEach { salah ->

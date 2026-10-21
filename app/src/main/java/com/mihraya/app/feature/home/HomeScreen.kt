@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -178,7 +179,12 @@ fun HomeScreen(actions: HomeActions) {
 
             d.verse?.let { verse ->
                 item(key = "verse") {
-                    VerseOfTheDay(verse = verse, onClick = { actions.openReader(verse.surah, verse.ayah) }, modifier = item)
+                    VerseOfTheDay(
+                        verse = verse,
+                        arabicFont = ArabicFonts.quran(d.settings.reader.arabicFont, d.settings.reader.script),
+                        onClick = { actions.openReader(verse.surah, verse.ayah) },
+                        modifier = item,
+                    )
                 }
             }
         }
@@ -524,10 +530,7 @@ private fun DayNoteCard(note: DayNote, onAction: () -> Unit, modifier: Modifier 
 private fun QuickAccess(dashboard: HomeDashboard, actions: HomeActions, modifier: Modifier = Modifier) {
     val lastRead = dashboard.lastRead
     val readTitle = lastRead?.let { "${QuranMeta.surah(it.surah).name} · ${it.surah}:${it.ayah}" } ?: "Al-Fātiḥah"
-    val readProgress = lastRead?.let {
-        val percent = (QuranMeta.verseId(it.surah, it.ayah) * 100f / QuranMeta.VERSE_COUNT).roundToInt()
-        "$percent% through the Quran"
-    } ?: "Begin your journey"
+    val readProgress = lastRead?.let { "Juzʾ ${QuranMeta.juzOf(it.surah, it.ayah)} of ${QuranMeta.JUZ_COUNT}" } ?: "Begin your journey"
     val lastPlayed = dashboard.lastPlayed
     val listenTitle = lastPlayed?.let { QuranMeta.surah(it.surah).name } ?: "Recitations"
     val listenSubtitle = lastPlayed?.let { Reciters.byId(it.reciterId).shortName } ?: "7 renowned reciters"
@@ -606,7 +609,7 @@ private fun QuickTile(
 }
 
 @Composable
-private fun VerseOfTheDay(verse: Verse, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun VerseOfTheDay(verse: Verse, arabicFont: FontFamily, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = Mihraya.colors
     val surah = remember(verse.surah) { QuranMeta.surah(verse.surah) }
     GlassCard(modifier, onClick = onClick, contentPadding = PaddingValues(22.dp)) {
@@ -615,7 +618,7 @@ private fun VerseOfTheDay(verse: Verse, onClick: () -> Unit, modifier: Modifier 
         Text(
             verse.arabic,
             style = Mihraya.type.body.copy(
-                fontFamily = ArabicFonts.AmiriQuran,
+                fontFamily = arabicFont,
                 fontSize = 24.sp,
                 lineHeight = 46.sp,
                 textDirection = TextDirection.Rtl,

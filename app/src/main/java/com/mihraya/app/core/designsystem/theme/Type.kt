@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.sp
 import com.mihraya.app.R
 import com.mihraya.app.data.quran.TranslationInfo
 import com.mihraya.app.data.settings.ArabicFont
+import com.mihraya.app.data.settings.QuranScript
 
 private fun manrope(weight: FontWeight) = Font(
     resId = R.font.manrope,
@@ -40,8 +41,9 @@ object ArabicFonts {
     )
     val Nastaliq = FontFamily(Font(R.font.noto_nastaliq_urdu))
 
-    fun quran(font: ArabicFont): FontFamily = when (font) {
-        ArabicFont.AmiriQuran -> AmiriQuran
+    /** Amiri Quran lacks the Urdu letter forms used by the IndoPak script, so regular Amiri stands in for it there. */
+    fun quran(font: ArabicFont, script: QuranScript): FontFamily = when (font) {
+        ArabicFont.AmiriQuran -> if (script == QuranScript.IndoPak) Amiri else AmiriQuran
         ArabicFont.Scheherazade -> Scheherazade
         ArabicFont.NotoNaskh -> NotoNaskh
     }

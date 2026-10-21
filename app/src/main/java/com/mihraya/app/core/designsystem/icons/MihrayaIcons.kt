@@ -130,18 +130,16 @@ object MihrayaIcons {
 
     val Tasbih: ImageVector by lazy {
         icon("Tasbih") {
-            stroke(1.3f) { circle(12f, 10f, 6.2f) }
             solid {
-                for (i in 0 until 8) {
-                    val angle = Math.toRadians(i * 45.0 - 90.0)
-                    circle(12f + (6.2f * Math.cos(angle)).toFloat(), 10f + (6.2f * Math.sin(angle)).toFloat(), 1.35f)
+                for (i in 1 until 10) {
+                    val angle = Math.toRadians(90.0 + i * 36.0)
+                    circle(12f + (6.3f * Math.cos(angle)).toFloat(), 9.4f + (6.3f * Math.sin(angle)).toFloat(), 1.55f)
                 }
+                circle(12f, 17.6f, 1.25f)
             }
-            stroke(1.4f) {
-                moveTo(12f, 16.2f)
-                lineTo(12f, 20.5f)
-                moveTo(10.6f, 21f)
-                lineTo(13.4f, 21f)
+            stroke(1.5f) {
+                moveTo(12f, 18.9f)
+                lineTo(12f, 21.6f)
             }
         }
     }

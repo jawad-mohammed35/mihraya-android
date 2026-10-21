@@ -302,7 +302,7 @@ private fun ReciterCard(reciter: Reciter, selected: Boolean, onClick: () -> Unit
     ) {
         Artwork(
             hue = reciter.hue,
-            title = reciter.arabicName.split(' ').first(),
+            title = reciter.arabicShortName,
             cornerRadius = 24.dp,
             modifier = Modifier
                 .size(132.dp)

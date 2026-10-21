@@ -220,6 +220,7 @@ fun Pill(
     }
 }
 
+/** Pass a negative [selectedIndex] when no option applies, e.g. for mixed values. */
 @Composable
 fun SegmentedControl(
     options: List<String>,
@@ -237,18 +238,20 @@ fun SegmentedControl(
     ) {
         val segment = maxWidth / options.size
         val offset by animateDpAsState(
-            targetValue = segment * selectedIndex,
+            targetValue = segment * selectedIndex.coerceAtLeast(0),
             animationSpec = spring(dampingRatio = 0.82f, stiffness = Spring.StiffnessMediumLow),
             label = "segment",
         )
-        Box(
-            Modifier
-                .offset(x = offset)
-                .width(segment)
-                .fillMaxHeight()
-                .clip(CircleShape)
-                .background(colors.accentSoft),
-        )
+        if (selectedIndex >= 0) {
+            Box(
+                Modifier
+                    .offset(x = offset)
+                    .width(segment)
+                    .fillMaxHeight()
+                    .clip(CircleShape)
+                    .background(colors.accentSoft),
+            )
+        }
         Row(Modifier.fillMaxWidth()) {
             options.forEachIndexed { index, label ->
                 val selected = index == selectedIndex

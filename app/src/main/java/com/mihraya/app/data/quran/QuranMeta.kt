@@ -83,8 +83,9 @@ object QuranMeta {
         "94:6", "112:1",
     ).map { requireNotNull(parseRef(it)) }
 
+    /** The stride must stay coprime with the list size so every verse comes round in turn. */
     fun verseOfTheDay(date: LocalDate): VerseRef =
-        dailyVerses[Math.floorMod(date.toEpochDay() * 7L + 3L, dailyVerses.size.toLong()).toInt()]
+        dailyVerses[Math.floorMod(date.toEpochDay() * 11L + 3L, dailyVerses.size.toLong()).toInt()]
 }
 
 fun Int.arabicDigits(extended: Boolean = false): String {

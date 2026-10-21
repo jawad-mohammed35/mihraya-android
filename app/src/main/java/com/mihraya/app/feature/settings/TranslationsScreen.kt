@@ -72,8 +72,9 @@ fun TranslationsScreen(onBack: () -> Unit) {
 
     fun toggle(info: TranslationInfo) = container.settings.edit { s ->
         val current = s.reader.translations
-        val next = if (info.id in current) current - info.id else (current + info.id).takeLast(MAX_ACTIVE_TRANSLATIONS)
-        s.copy(reader = s.reader.copy(translations = next, showTranslation = next.isNotEmpty() || s.reader.showTranslation))
+        val adding = info.id !in current
+        val next = if (adding) (current + info.id).takeLast(MAX_ACTIVE_TRANSLATIONS) else current - info.id
+        s.copy(reader = s.reader.copy(translations = next, showTranslation = adding || s.reader.showTranslation))
     }
 
     SettingsScaffold(

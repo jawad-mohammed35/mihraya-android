@@ -20,7 +20,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -186,7 +185,7 @@ private fun QiblaCompass(bearing: Float, declination: Float, distanceKm: Double)
     Column(Modifier.widthIn(max = 560.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.height(18.dp))
 
-        BoxWithConstraints(
+        Box(
             Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f),

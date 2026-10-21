@@ -142,7 +142,7 @@ fun ReaderPreferencesPanel(
                                 onChange { p ->
                                     val next = if (selected) p.translations - info.id
                                     else (p.translations + info.id).takeLast(MAX_TRANSLATIONS)
-                                    p.copy(translations = next, showTranslation = next.isNotEmpty() || p.showTranslation)
+                                    p.copy(translations = next, showTranslation = !selected || p.showTranslation)
                                 }
                             }
                             .padding(horizontal = 16.dp, vertical = 14.dp),

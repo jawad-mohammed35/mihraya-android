@@ -26,9 +26,10 @@ import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -69,11 +70,13 @@ fun DownloadsScreen(onBack: () -> Unit, onManageTranslations: () -> Unit) {
     val installed by container.quran.installedTranslations.collectAsStateWithLifecycle()
     var confirmRemove by remember { mutableStateOf<Reciter?>(null) }
 
-    val audioBytes by produceState(emptyMap<String, Long>(), downloaded) {
-        value = withContext(Dispatchers.IO) { Reciters.all.associate { it.id to downloads.bytesFor(it.id) } }
+    var audioBytes by remember { mutableStateOf(emptyMap<String, Long>()) }
+    var translationBytes by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(downloaded) {
+        audioBytes = withContext(Dispatchers.IO) { Reciters.all.associate { it.id to downloads.bytesFor(it.id) } }
     }
-    val translationBytes by produceState(0L, installed) {
-        value = withContext(Dispatchers.IO) { container.quran.downloadedBytes() }
+    LaunchedEffect(installed) {
+        translationBytes = withContext(Dispatchers.IO) { container.quran.downloadedBytes() }
     }
     val downloadedTranslations = installed.count { id -> TranslationCatalog.byId(id)?.bundled == false }
     val totalSurahs = downloaded.values.sumOf { it.size }

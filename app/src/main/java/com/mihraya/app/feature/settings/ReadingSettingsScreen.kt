@@ -9,9 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.RecordVoiceOver
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -43,8 +43,9 @@ fun ReadingSettingsScreen(onBack: () -> Unit, onManageTranslations: () -> Unit) 
     val prefs = settings.reader
     var pickReciter by remember { mutableStateOf(false) }
 
-    val preview by produceState<Verse?>(null, prefs, installed) {
-        value = runCatching { container.quran.surahVerses(PREVIEW_SURAH, prefs)[PREVIEW_AYAH - 1] }.getOrNull()
+    var preview by remember { mutableStateOf<Verse?>(null) }
+    LaunchedEffect(prefs, installed) {
+        preview = runCatching { container.quran.surahVerses(PREVIEW_SURAH, prefs)[PREVIEW_AYAH - 1] }.getOrNull()
     }
 
     SettingsScaffold("Reading", onBack, subtitle = "Script, fonts and translations") {

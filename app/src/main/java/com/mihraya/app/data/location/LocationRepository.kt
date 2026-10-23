@@ -73,10 +73,13 @@ class LocationRepository(
         val lm = manager ?: throw LocationException("Location is not available on this device")
         if (!LocationManagerCompat.isLocationEnabled(lm)) throw LocationException("Turn on location services and try again")
 
+        val fineGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
         val providers = buildList {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(LocationManager.FUSED_PROVIDER)
             add(LocationManager.NETWORK_PROVIDER)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(LocationManager.GPS_PROVIDER)
+            // GPS is only used if the user has granted precise location. This app never asks for that.
+            if (fineGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(LocationManager.GPS_PROVIDER)
             add(LocationManager.PASSIVE_PROVIDER)
         }.filter { provider -> runCatching { lm.isProviderEnabled(provider) }.getOrDefault(false) }
 

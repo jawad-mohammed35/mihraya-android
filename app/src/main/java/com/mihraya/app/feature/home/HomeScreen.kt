@@ -145,7 +145,7 @@ fun HomeScreen(actions: HomeActions) {
                     TodayCard(
                         today = today,
                         schedule = schedule,
-                        now = now,
+                        at = d.observedAt,
                         alertFor = { d.settings.alerts.modeFor(it) },
                         onAlertChange = vm::setAlert,
                         onTimetable = actions.openTimetable,
@@ -403,7 +403,7 @@ private fun NextPrayerCard(
 private fun TodayCard(
     today: PrayerDay,
     schedule: PrayerSchedule,
-    now: State<Instant>,
+    at: Instant,
     alertFor: (Salah) -> AlertMode,
     onAlertChange: (Salah, AlertMode) -> Unit,
     onTimetable: () -> Unit,
@@ -411,7 +411,7 @@ private fun TodayCard(
 ) {
     val colors = Mihraya.colors
     val use24h = LocalUse24Hour.current
-    val zoned = schedule.now(now.value)
+    val zoned = schedule.now(at)
     val current = schedule.previous(zoned, includeSunrise = true)?.takeIf { it.time.toLocalDate() == today.date }?.salah
     val nextSalah = schedule.next(zoned)?.salah
 

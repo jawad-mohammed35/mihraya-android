@@ -99,6 +99,7 @@ fun AboutScreen(onBack: () -> Unit) {
             listOf(
                 "No accounts, ads, analytics or trackers.",
                 "Prayer times and the Qibla are calculated on your device. Your coordinates are never uploaded.",
+                "Location is approximate. The app does not request precise GPS, and it only checks again when you open it if the saved place is more than a few hours old.",
                 "City searches are sent to Open-Meteo. When detecting your location, Android's built-in geocoder looks up the city name.",
                 "Turning on the dua after the Adhan downloads one short recording from hisnmuslim.com.",
                 "Settings, bookmarks, reading progress and tasbīḥ history stay on this device.",

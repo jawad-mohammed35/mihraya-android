@@ -42,6 +42,8 @@ data class HomeDashboard(
     val lastPlayed: LastPlayed?,
     val tasbihToday: Int,
     val verse: Verse?,
+    /** Wall clock used for "current prayer" highlighting. Updates once a minute, not every second. */
+    val observedAt: Instant,
 )
 
 class HomeViewModel(private val container: AppContainer) : ViewModel() {
@@ -96,6 +98,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             lastPlayed = library.lastPlayed,
             tasbihToday = tasbihToday,
             verse = verseOfDay,
+            observedAt = instant,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 

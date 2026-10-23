@@ -213,9 +213,8 @@ private fun MihrayaNavHost(
                     openReader = { surah, ayah -> navController.navigate(ReaderRoute(surah, ayah)) },
                     openTimetable = { navController.navigate(TimetableRoute) },
                     openLocation = { navController.navigate(LocationRoute) },
-                    openNotifications = { navController.navigate(NotificationSettingsRoute) },
-                    openTasbih = { navController.navigate(TasbihRoute) },
-                    openQibla = { navController.navigateTopLevel(TopLevel.Qibla) },
+                    openTasbih = { navController.navigateTopLevel(TopLevel.Tasbih) },
+                    openQibla = { navController.navigate(QiblaRoute) { launchSingleTop = true } },
                     openListen = { navController.navigateTopLevel(TopLevel.Listen) },
                 ),
             )
@@ -226,9 +225,7 @@ private fun MihrayaNavHost(
         composable<ListenRoute> {
             ListenScreen(onOpenPlayer = openPlayer, onOpenDownloads = { navController.navigate(DownloadsRoute) })
         }
-        composable<QiblaRoute> {
-            QiblaScreen(onSetLocation = { navController.navigate(LocationRoute) })
-        }
+        composable<TasbihRoute> { TasbihScreen() }
         composable<MoreRoute> {
             MoreScreen(onNavigate = { route -> navController.navigate(route) })
         }
@@ -243,7 +240,9 @@ private fun MihrayaNavHost(
             )
         }
         composable<TimetableRoute> { TimetableScreen(onBack = back) }
-        composable<TasbihRoute> { TasbihScreen(onBack = back) }
+        composable<QiblaRoute> {
+            QiblaScreen(onBack = back, onSetLocation = { navController.navigate(LocationRoute) })
+        }
         composable<PrayerSettingsRoute> {
             PrayerSettingsScreen(onBack = back, onLocation = { navController.navigate(LocationRoute) })
         }

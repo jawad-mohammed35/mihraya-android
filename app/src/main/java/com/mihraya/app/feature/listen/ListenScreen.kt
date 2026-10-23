@@ -86,11 +86,7 @@ fun ListenScreen(onOpenPlayer: () -> Unit, onOpenDownloads: () -> Unit) {
         contentPadding = PaddingValues(bottom = LocalBottomInset.current + 16.dp),
     ) {
         item(key = "header") {
-            ScreenHeader(
-                "Listen",
-                subtitle = "Recitations of the Holy Quran",
-                modifier = item.padding(horizontal = 20.dp),
-            )
+            ScreenHeader("Listen", modifier = item.padding(horizontal = 20.dp))
         }
 
         item(key = "hero") {

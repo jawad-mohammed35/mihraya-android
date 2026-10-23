@@ -45,9 +45,20 @@ private val contentSources = listOf(
     Credit("City search", "Open-Meteo geocoding, based on GeoNames · CC BY 4.0", "https://open-meteo.com/en/docs/geocoding-api"),
 )
 
+private val adhanCredits = listOf(
+    Credit("Makkah", "Maghrib at Masjid al-Ḥarām by 3omar Faruq · CC BY 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Maghrib_Adhan_at_the_Masjid_al_Haram,_Mecca_-_25_Feb,_2012.webm"),
+    Credit("Kuala Lumpur", "Masjid KLCC · CC0 · Internet Archive", "https://archive.org/details/AzanZhurMasjidKlcc"),
+    Credit("Ahmedabad", "Moazzam Mirza · Public domain · Internet Archive", "https://archive.org/details/IshaAzanByMoazzambegMirza07092013"),
+    Credit("Asim Javed", "Asim Javed · CC0 · Internet Archive", "https://archive.org/details/icr-friday-prayer-1st-adhan-17th-may-2024-9th-dhul-qadah-1445-by-asim-javed"),
+    Credit("Shalqar", "Matey Qoqanuly mosque by Esetok · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Adhan_in_Shalqar_mosque.webm"),
+    Credit("Aaqib Azeez", "Uploaded by Atcovi · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:The_Adhan_-_Muslim_Call_to_Prayer_-_Aaqib_Azeez.mp3"),
+    Credit("Mahfoudou", "CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Islamic_call_to_worship.oga"),
+    Credit("Malmö (Fajr)", "Islamic Center Malmö · CC BY 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Eid_al-Fitr_Fajr_azan_at_Malm%C3%B6_Mosque_-_19_August_2012.webm"),
+    Credit("Fouad (Fajr)", "Fouad Adan · Public domain · Internet Archive", "https://archive.org/details/AdanAlfajrFouadAdan"),
+    Credit("Dua after the Adhan", "Ḥiṣn al-Muslim, recited by Hamad al-Duraihim · downloaded from hisnmuslim.com", "https://www.hisnmuslim.com/i/ar/15"),
+)
+
 private val mediaCredits = listOf(
-    Credit("Adhan · Aaqib Azeez", "Wikimedia Commons, uploaded by Atcovi · CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:The_Adhan_-_Muslim_Call_to_Prayer_-_Aaqib_Azeez.mp3"),
-    Credit("Adhan · Mahfoudou", "Wikimedia Commons · CC BY-SA 4.0", "https://commons.wikimedia.org/wiki/File:Islamic_call_to_worship.oga"),
     Credit("Fonts", "Manrope, Amiri, Amiri Quran, Scheherazade New, Noto Naskh Arabic, Noto Nastaliq Urdu · SIL Open Font Licence 1.1", "https://fonts.google.com"),
 )
 
@@ -89,6 +100,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 "No accounts, ads, analytics or trackers.",
                 "Prayer times and the Qibla are calculated on your device. Your coordinates are never uploaded.",
                 "City searches are sent to Open-Meteo. When detecting your location, Android's built-in geocoder looks up the city name.",
+                "Turning on the dua after the Adhan downloads one short recording from hisnmuslim.com.",
                 "Settings, bookmarks, reading progress and tasbīḥ history stay on this device.",
             ).forEach { line ->
                 Row(Modifier.padding(vertical = 4.dp)) {
@@ -99,7 +111,8 @@ fun AboutScreen(onBack: () -> Unit) {
         }
 
         CreditGroup("Sources", contentSources)
-        CreditGroup("Audio & typography", mediaCredits)
+        CreditGroup("Adhan & dua recordings", adhanCredits, footer = "Recordings were trimmed and volume-matched for Mihraya.")
+        CreditGroup("Typography", mediaCredits)
         CreditGroup("Open-source libraries", libraries)
 
         Text(
@@ -113,10 +126,10 @@ fun AboutScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun CreditGroup(title: String, credits: List<Credit>) {
+private fun CreditGroup(title: String, credits: List<Credit>, footer: String? = null) {
     val uriHandler = LocalUriHandler.current
     val colors = Mihraya.colors
-    SettingsGroup(title) {
+    SettingsGroup(title, footer = footer) {
         credits.forEachIndexed { index, credit ->
             if (index > 0) SettingsDivider()
             Row(

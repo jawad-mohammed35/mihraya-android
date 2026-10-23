@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -36,15 +35,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.RestartAlt
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -75,9 +71,10 @@ import com.mihraya.app.core.designsystem.components.EmptyState
 import com.mihraya.app.core.designsystem.components.HairlineDivider
 import com.mihraya.app.core.designsystem.components.MihrayaDialog
 import com.mihraya.app.core.designsystem.components.MihrayaSheet
+import com.mihraya.app.core.designsystem.components.MihrayaTextField
 import com.mihraya.app.core.designsystem.components.Pill
+import com.mihraya.app.core.designsystem.components.ScreenHeader
 import com.mihraya.app.core.designsystem.components.SecondaryButton
-import com.mihraya.app.core.designsystem.components.TopBar
 import com.mihraya.app.core.designsystem.components.glass
 import com.mihraya.app.core.designsystem.components.pressScale
 import com.mihraya.app.core.designsystem.icons.MihrayaIcons
@@ -86,6 +83,7 @@ import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.util.rememberHaptics
 import com.mihraya.app.data.library.DhikrPreset
 import com.mihraya.app.data.library.TasbihSession
+import com.mihraya.app.ui.LocalBottomInset
 import com.mihraya.app.ui.mihrayaViewModel
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -98,7 +96,7 @@ private val targetPresets = listOf(33, 99, 100)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TasbihScreen(onBack: () -> Unit) {
+fun TasbihScreen() {
     val vm = mihrayaViewModel { TasbihViewModel(it) }
     val state by vm.state.collectAsStateWithLifecycle()
     val presets by vm.presets.collectAsStateWithLifecycle()
@@ -140,12 +138,12 @@ fun TasbihScreen(onBack: () -> Unit) {
         }
     }
 
-    Column(Modifier.fillMaxSize().navigationBarsPadding()) {
-        TopBar(
-            title = "Tasbīḥ",
+    Column(Modifier.fillMaxSize().padding(bottom = LocalBottomInset.current)) {
+        ScreenHeader(
+            "Tasbīḥ",
             subtitle = "Today · $today",
-            onBack = onBack,
-            actions = { CircleIconButton(Icons.Rounded.History, "History", { showHistory = true }) },
+            modifier = Modifier.padding(horizontal = 20.dp),
+            trailing = { CircleIconButton(Icons.Rounded.History, "History", { showHistory = true }) },
         )
 
         LazyRow(
@@ -395,7 +393,7 @@ private fun NumberDialog(title: String, initial: Int?, onDismiss: () -> Unit, on
         confirmEnabled = value != null && value in 1..100_000,
         onConfirm = { value?.let(onConfirm) },
     ) {
-        MihrayaTextField(text, { text = it.filter(Char::isDigit).take(6) }, "Count", KeyboardType.Number)
+        MihrayaTextField(text, { text = it.filter(Char::isDigit).take(6) }, "Count", keyboardOptions = numberKeyboard)
     }
 }
 
@@ -417,30 +415,12 @@ private fun AddDhikrDialog(onDismiss: () -> Unit, onSave: (String, String, Strin
             MihrayaTextField(name, { name = it.take(60) }, "Name or transliteration")
             MihrayaTextField(arabic, { arabic = it.take(120) }, "Arabic (optional)")
             MihrayaTextField(meaning, { meaning = it.take(120) }, "Meaning (optional)")
-            MihrayaTextField(target, { target = it.filter(Char::isDigit).take(6) }, "Target", KeyboardType.Number)
+            MihrayaTextField(target, { target = it.filter(Char::isDigit).take(6) }, "Target", keyboardOptions = numberKeyboard)
         }
     }
 }
 
-@Composable
-private fun MihrayaTextField(value: String, onChange: (String) -> Unit, label: String, keyboard: KeyboardType = KeyboardType.Text) {
-    val colors = Mihraya.colors
-    OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text(label) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboard),
-        shape = RoundedCornerShape(16.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = colors.accent,
-            unfocusedBorderColor = colors.glassBorder,
-            focusedLabelColor = colors.accent,
-            cursorColor = colors.accent,
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    )
-}
+private val numberKeyboard = KeyboardOptions(keyboardType = KeyboardType.Number)
 
 @Composable
 private fun HistorySheet(sessions: List<TasbihSession>, onClear: () -> Unit, onDismiss: () -> Unit) {

@@ -94,9 +94,12 @@ class PlaybackService : MediaSessionService() {
             mediaItems: MutableList<MediaItem>,
         ): ListenableFuture<MutableList<MediaItem>> {
             val downloads = appContainer.audioDownloads
-            return Futures.immediateFuture(
-                mediaItems.map { MediaItems.resolve(this@PlaybackService, it, downloads) }.toMutableList(),
-            )
+            val resolved = mediaItems.mapNotNull { MediaItems.resolve(this@PlaybackService, it, downloads) }
+            return if (resolved.isEmpty()) {
+                Futures.immediateFailedFuture(UnsupportedOperationException("No playable items"))
+            } else {
+                Futures.immediateFuture(resolved.toMutableList())
+            }
         }
 
         override fun onPlaybackResumption(

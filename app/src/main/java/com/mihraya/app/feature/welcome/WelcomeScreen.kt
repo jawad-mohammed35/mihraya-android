@@ -35,16 +35,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,25 +59,32 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mihraya.app.core.designsystem.components.MihrayaTextField
 import com.mihraya.app.core.designsystem.components.NoticeCard
 import com.mihraya.app.core.designsystem.components.PrimaryButton
 import com.mihraya.app.core.designsystem.components.StarShape
 import com.mihraya.app.core.designsystem.components.glass
 import com.mihraya.app.core.designsystem.icons.MihrayaIcons
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.feature.more.MAX_NAME_LENGTH
 import com.mihraya.app.feature.settings.CitySearch
 import com.mihraya.app.ui.LocalAppContainer
 import com.mihraya.app.ui.rememberLocationRequest
 
 private const val STEP_INTRO = 0
-private const val STEP_LOCATION = 1
-private const val STEP_ALERTS = 2
+private const val STEP_NAME = 1
+private const val STEP_LOCATION = 2
+private const val STEP_ALERTS = 3
+private const val STEP_COUNT = 4
 
 @Composable
 fun WelcomeScreen(onDone: () -> Unit) {
@@ -124,7 +135,8 @@ fun WelcomeScreen(onDone: () -> Unit) {
                 ) {
                     Column(Modifier.widthIn(max = 480.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                         when (current) {
-                            STEP_INTRO -> IntroStep(onNext = { step = STEP_LOCATION })
+                            STEP_INTRO -> IntroStep(onNext = { step = STEP_NAME })
+                            STEP_NAME -> NameStep(onNext = { step = STEP_LOCATION })
                             STEP_LOCATION -> LocationStep(onNext = { step = STEP_ALERTS })
                             else -> AlertsStep(onDone = onDone)
                         }
@@ -139,7 +151,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
 private fun StepDots(step: Int, modifier: Modifier = Modifier) {
     val colors = Mihraya.colors
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        repeat(3) { index ->
+        repeat(STEP_COUNT) { index ->
             val width by animateDpAsState(if (index == step) 22.dp else 6.dp, tween(300), label = "dot")
             val color by animateColorAsState(if (index <= step) colors.accent else colors.glassBorder, tween(300), label = "dotColor")
             Box(Modifier.size(width = width, height = 6.dp).clip(CircleShape).background(color))
@@ -209,6 +221,40 @@ private fun Feature(icon: ImageVector, title: String, detail: String) {
             Text(detail, style = Mihraya.type.bodySmall, color = colors.textTertiary)
         }
     }
+}
+
+@Composable
+private fun ColumnScope.NameStep(onNext: () -> Unit) {
+    val container = LocalAppContainer.current
+    val settings by container.settings.state.collectAsStateWithLifecycle()
+    var name by rememberSaveable { mutableStateOf(settings?.userName.orEmpty()) }
+    val focus = LocalFocusManager.current
+    val save = {
+        focus.clearFocus()
+        container.settings.edit { it.copy(userName = name.trim()) }
+        onNext()
+    }
+    StepHeader(
+        icon = Icons.Rounded.Person,
+        title = "What should we call you?",
+        message = "Mihraya will greet you by name. You can change it any time in More.",
+    )
+    Spacer(Modifier.height(36.dp))
+    MihrayaTextField(
+        value = name,
+        onValueChange = { name = it.take(MAX_NAME_LENGTH) },
+        label = "Your name",
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { save() }),
+    )
+    Spacer(Modifier.height(20.dp))
+    PrimaryButton("Continue", onClick = save, modifier = Modifier.fillMaxWidth(), enabled = name.isNotBlank())
+    Spacer(Modifier.height(12.dp))
+    SkipButton("Skip") {
+        focus.clearFocus()
+        onNext()
+    }
+    Spacer(Modifier.height(24.dp))
 }
 
 @Composable

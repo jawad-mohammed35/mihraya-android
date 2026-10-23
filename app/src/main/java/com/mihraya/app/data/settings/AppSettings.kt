@@ -31,11 +31,34 @@ enum class AlertMode(val label: String, val description: String) {
     Off("Off", "No alert"),
 }
 
+/** [fajrOnly] recordings include “aṣ-ṣalātu khayrun min an-nawm” and are only offered for Fajr. */
 @Serializable
-enum class AdhanSound(val label: String, val credit: String) {
-    Azeez("Adhan · Aaqib Azeez", "Wikimedia Commons · CC BY-SA 4.0"),
-    Mahfoudou("Adhan · Mahfoudou", "Wikimedia Commons · CC BY-SA 4.0"),
+enum class AdhanSound(val label: String, val detail: String, val fajrOnly: Boolean = false) {
+    Makkah("Makkah", "Masjid al-Ḥarām"),
+    KualaLumpur("Kuala Lumpur", "Masjid KLCC, Malaysia"),
+    Ahmedabad("Ahmedabad", "Moazzam Mirza, India"),
+    Javed("Asim Javed", "Friday Adhan"),
+    Shalqar("Shalqar", "Kazakhstan"),
+    Azeez("Aaqib Azeez", ""),
+    Mahfoudou("Mahfoudou", ""),
+    MalmoFajr("Malmö", "Fajr Adhan · Sweden", fajrOnly = true),
+    FouadFajr("Fouad", "Fajr Adhan", fajrOnly = true),
     Custom("Your own audio", "Pick any audio file on this device"),
+    ;
+
+    companion object {
+        val regular = entries.filter { !it.fajrOnly && it != Custom }
+        val fajr = entries.filter { it.fajrOnly }
+    }
+}
+
+@Serializable
+enum class DistanceUnit(val label: String, val symbol: String) {
+    Kilometers("Kilometres", "km"),
+    Miles("Miles", "mi"),
+    ;
+
+    fun fromKm(km: Double): Double = if (this == Miles) km * 0.621371 else km
 }
 
 @Serializable
@@ -97,15 +120,23 @@ data class PrayerPreferences(
 @Serializable
 data class AlertPreferences(
     val modes: Map<Salah, AlertMode> = emptyMap(),
-    val adhanSound: AdhanSound = AdhanSound.Azeez,
+    val adhanSound: AdhanSound = AdhanSound.Makkah,
+    /** Null plays [adhanSound] at Fajr too. */
+    val fajrSound: AdhanSound? = null,
     val customSoundUri: String? = null,
     val customSoundName: String? = null,
+    val duaAfterAdhan: Set<Salah> = emptySet(),
     val reminderMinutes: Int = 0,
     val qiyamReminder: Boolean = false,
     val respectSilentMode: Boolean = true,
 ) {
     fun modeFor(salah: Salah): AlertMode =
         modes[salah] ?: if (salah == Salah.Sunrise) AlertMode.Off else AlertMode.Adhan
+
+    fun soundFor(salah: Salah): AdhanSound {
+        val fajr = fajrSound?.takeIf { salah == Salah.Fajr && it.fajrOnly }
+        return fajr ?: adhanSound.takeIf { !it.fajrOnly } ?: AdhanSound.Makkah
+    }
 }
 
 @Serializable
@@ -125,9 +156,11 @@ data class ReaderPreferences(
 @Serializable
 data class AppSettings(
     val onboardingDone: Boolean = false,
+    val userName: String = "",
     val theme: ThemeMode = ThemeMode.Dark,
     val accent: AccentColor = AccentColor.Emerald,
     val use24Hour: Boolean = false,
+    val distanceUnit: DistanceUnit = DistanceUnit.Kilometers,
     val haptics: Boolean = true,
     val hijriOffset: Int = 0,
     val location: SavedLocation? = null,

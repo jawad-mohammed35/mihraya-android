@@ -76,7 +76,7 @@ fun QuranScreen(onOpenReader: (surah: Int, ayah: Int) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = LocalBottomInset.current + 16.dp),
     ) {
         item(key = "header") {
-            ScreenHeader("Quran", subtitle = "114 sūrahs · 30 ajzāʾ · 6,236 verses", modifier = item)
+            ScreenHeader("Quran", modifier = item)
         }
         item(key = "search") {
             SearchField(

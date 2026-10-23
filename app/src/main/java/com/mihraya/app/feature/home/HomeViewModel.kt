@@ -41,7 +41,6 @@ data class HomeDashboard(
     val lastRead: ReadingPosition?,
     val lastPlayed: LastPlayed?,
     val tasbihToday: Int,
-    val qiblaBearing: Double?,
     val verse: Verse?,
 )
 
@@ -96,7 +95,6 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             lastRead = library.lastRead,
             lastPlayed = library.lastPlayed,
             tasbihToday = tasbihToday,
-            qiblaBearing = settings.location?.let { container.prayerCalculator.qiblaBearing(it.latitude, it.longitude) },
             verse = verseOfDay,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

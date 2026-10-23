@@ -13,7 +13,11 @@ import android.provider.OpenableColumns
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,37 +28,51 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccessAlarm
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mihraya.app.core.designsystem.components.CircleIconButton
 import com.mihraya.app.core.designsystem.components.GlassCard
+import com.mihraya.app.core.designsystem.components.HairlineDivider
 import com.mihraya.app.core.designsystem.components.NoticeCard
 import com.mihraya.app.core.designsystem.components.OptionSheet
-import com.mihraya.app.core.designsystem.components.RadioDot
 import com.mihraya.app.core.designsystem.components.SecondaryButton
 import com.mihraya.app.core.designsystem.components.SectionLabel
 import com.mihraya.app.core.designsystem.components.SegmentedControl
@@ -64,9 +82,11 @@ import com.mihraya.app.core.designsystem.components.SettingsStepperRow
 import com.mihraya.app.core.designsystem.components.SettingsSwitchRow
 import com.mihraya.app.core.designsystem.components.SettingsValueRow
 import com.mihraya.app.core.designsystem.components.SheetOption
+import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.LocalUse24Hour
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.util.TimeFormat
+import com.mihraya.app.data.audio.DuaAudio
 import com.mihraya.app.data.prayer.Salah
 import com.mihraya.app.data.settings.AdhanSound
 import com.mihraya.app.data.settings.AlertMode
@@ -79,6 +99,7 @@ import com.mihraya.app.notifications.AlarmKind
 import com.mihraya.app.notifications.PrayerNotifier
 import com.mihraya.app.notifications.zone
 import com.mihraya.app.ui.LocalAppContainer
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 
@@ -180,28 +201,37 @@ fun NotificationSettingsScreen(onBack: () -> Unit) {
             }
         }
 
-        SettingsGroup("Adhan sound", footer = "Recordings from Wikimedia Commons, shared under CC BY-SA 4.0.") {
-            AdhanSound.entries.forEachIndexed { index, sound ->
-                if (index > 0) SettingsDivider()
-                val selected = alerts.adhanSound == sound
-                val hasCustom = alerts.customSoundUri != null
-                SoundRow(
-                    title = sound.label,
-                    subtitle = if (sound == AdhanSound.Custom) alerts.customSoundName ?: sound.credit else sound.credit,
-                    selected = selected,
-                    playing = preview.playing == sound,
-                    canPreview = sound != AdhanSound.Custom || hasCustom,
-                    onSelect = {
-                        if (sound == AdhanSound.Custom && !hasCustom) soundPicker.launch(arrayOf("audio/*"))
-                        else update { it.copy(adhanSound = sound) }
-                    },
-                    onPreview = {
-                        if (preview.playing == sound) preview.stop()
-                        else preview.play(sound, AdhanService.soundUri(context, alerts.copy(adhanSound = sound)))
-                    },
-                )
-            }
-            if (alerts.customSoundUri != null) {
+        val hasCustom = alerts.customSoundUri != null
+        fun soundOption(sound: AdhanSound) = SoundOption(
+            key = sound,
+            label = sound.label,
+            detail = if (sound == AdhanSound.Custom) alerts.customSoundName ?: sound.detail else sound.detail,
+            uri = if (sound != AdhanSound.Custom || hasCustom) AdhanService.soundUri(context, sound, alerts.customSoundUri) else null,
+        )
+        val adhanOptions = (AdhanSound.regular + AdhanSound.Custom).map(::soundOption)
+        val fajrOptions: List<SoundOption<AdhanSound?>> = listOf(SoundOption(null, "Same as other prayers", alerts.adhanSound.label, null)) +
+            AdhanSound.fajr.map(::soundOption)
+
+        SettingsGroup("Adhan sound", footer = "Fajr Adhans include “aṣ-ṣalātu khayrun min an-nawm”.") {
+            SoundDropdown(
+                title = "Adhan",
+                options = adhanOptions,
+                selected = alerts.adhanSound,
+                preview = preview,
+                onSelect = { sound ->
+                    if (sound == AdhanSound.Custom && !hasCustom) soundPicker.launch(arrayOf("audio/*"))
+                    else update { it.copy(adhanSound = sound) }
+                },
+            )
+            SettingsDivider()
+            SoundDropdown(
+                title = "Fajr",
+                options = fajrOptions,
+                selected = alerts.fajrSound,
+                preview = preview,
+                onSelect = { sound -> update { it.copy(fajrSound = sound) } },
+            )
+            if (alerts.adhanSound == AdhanSound.Custom) {
                 SettingsDivider()
                 SettingsValueRow(
                     title = "Choose a different file",
@@ -211,6 +241,8 @@ fun NotificationSettingsScreen(onBack: () -> Unit) {
                 )
             }
         }
+
+        DuaAfterAdhan(alerts = alerts, preview = preview, onChange = { update(it) })
 
         SettingsGroup("Reminders") {
             SettingsStepperRow(
@@ -263,43 +295,199 @@ fun NotificationSettingsScreen(onBack: () -> Unit) {
     }
 }
 
+private data class SoundOption<out T>(val key: T, val label: String, val detail: String, val uri: Uri?)
+
 @Composable
-private fun SoundRow(
+private fun <T> SoundDropdown(
     title: String,
-    subtitle: String,
-    selected: Boolean,
-    playing: Boolean,
-    canPreview: Boolean,
-    onSelect: () -> Unit,
-    onPreview: () -> Unit,
+    options: List<SoundOption<T>>,
+    selected: T,
+    preview: SoundPreview,
+    onSelect: (T) -> Unit,
 ) {
     val colors = Mihraya.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(role = Role.RadioButton, onClick = onSelect)
-            .heightIn(min = 60.dp)
-            .padding(start = 16.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioDot(selected)
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = Mihraya.type.body.copy(fontWeight = FontWeight.Medium), color = colors.textPrimary)
-            Text(subtitle, style = Mihraya.type.caption, color = colors.textTertiary, maxLines = 1)
+    val density = LocalDensity.current
+    var expanded by remember { mutableStateOf(false) }
+    var anchorWidth by remember { mutableIntStateOf(0) }
+    val current = options.firstOrNull { it.key == selected } ?: options.first()
+    val chevron by animateFloatAsState(if (expanded) 180f else 0f, tween(220), label = "chevron")
+
+    Box(Modifier.fillMaxWidth().onSizeChanged { anchorWidth = it.width }) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.DropdownList) { expanded = true }
+                .heightIn(min = 60.dp)
+                .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = Mihraya.type.caption, color = colors.textTertiary)
+                Text(
+                    current.label,
+                    style = Mihraya.type.body.copy(fontWeight = FontWeight.SemiBold),
+                    color = colors.textPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            current.key?.let { key -> current.uri?.let { PreviewButton(key, it, preview) } }
+            Icon(
+                Icons.Rounded.KeyboardArrowDown,
+                contentDescription = null,
+                tint = colors.textTertiary,
+                modifier = Modifier.padding(horizontal = 6.dp).size(22.dp).rotate(chevron),
+            )
         }
-        if (canPreview) {
-            CircleIconButton(
-                icon = if (playing) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
-                contentDescription = if (playing) "Stop preview" else "Preview",
-                onClick = onPreview,
-                size = 38.dp,
-                iconSize = 18.dp,
-                tint = if (playing) colors.accent else colors.textSecondary,
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+                preview.stop()
+            },
+            offset = DpOffset(8.dp, 0.dp),
+            shape = RoundedCornerShape(22.dp),
+            containerColor = colors.surfaceRaised,
+            border = BorderStroke(1.dp, colors.glassBorder),
+            shadowElevation = 12.dp,
+            modifier = Modifier.width(with(density) { anchorWidth.toDp() } - 16.dp),
+        ) {
+            options.forEachIndexed { index, option ->
+                if (index > 0) HairlineDivider(Modifier.padding(horizontal = 16.dp))
+                val isSelected = option.key == selected
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.RadioButton) {
+                            expanded = false
+                            preview.stop()
+                            onSelect(option.key)
+                        }
+                        .heightIn(min = 56.dp)
+                        .padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(22.dp), contentAlignment = Alignment.Center) {
+                        if (isSelected) Icon(Icons.Rounded.Check, "Selected", tint = colors.accent, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            option.label,
+                            style = Mihraya.type.body.copy(fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium),
+                            color = if (isSelected) colors.accent else colors.textPrimary,
+                        )
+                        if (option.detail.isNotBlank()) {
+                            Text(option.detail, style = Mihraya.type.caption, color = colors.textTertiary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    option.key?.let { key -> option.uri?.let { PreviewButton(key, it, preview) } }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PreviewButton(key: Any, uri: Uri, preview: SoundPreview) {
+    val colors = Mihraya.colors
+    val playing = preview.playing == key
+    CircleIconButton(
+        icon = if (playing) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
+        contentDescription = if (playing) "Stop preview" else "Preview",
+        onClick = { if (playing) preview.stop() else preview.play(key, uri) },
+        size = 38.dp,
+        iconSize = 18.dp,
+        filled = false,
+        tint = if (playing) colors.accent else colors.textSecondary,
+    )
+}
+
+@Composable
+private fun DuaAfterAdhan(
+    alerts: AlertPreferences,
+    preview: SoundPreview,
+    onChange: ((AlertPreferences) -> AlertPreferences) -> Unit,
+) {
+    val container = LocalAppContainer.current
+    val colors = Mihraya.colors
+    val state by container.duaAudio.state.collectAsStateWithLifecycle()
+    var previewRequested by remember { mutableStateOf(false) }
+    val anyEnabled = alerts.duaAfterAdhan.isNotEmpty()
+
+    LaunchedEffect(anyEnabled) {
+        if (anyEnabled && !container.duaAudio.isReady) container.appScope.launch { container.duaAudio.ensure() }
+    }
+    LaunchedEffect(previewRequested, state) {
+        if (previewRequested && state == DuaAudio.State.Ready) {
+            previewRequested = false
+            preview.play(DUA_PREVIEW, Uri.fromFile(container.duaAudio.file))
+        }
+    }
+
+    val footer = when (state) {
+        DuaAudio.State.Downloading -> "Downloading the recitation…"
+        DuaAudio.State.Failed -> "Couldn't download the recitation. Check your connection and try again."
+        else -> "Plays automatically once the Adhan finishes. Only applies to prayers set to Adhan."
+    }
+
+    SettingsGroup("Dua after the Adhan", footer = footer) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ",
+                    style = Mihraya.type.body.copy(
+                        fontFamily = ArabicFonts.Amiri,
+                        fontSize = 20.sp,
+                        lineHeight = 34.sp,
+                        textDirection = TextDirection.Rtl,
+                    ),
+                    color = colors.textPrimary,
+                )
+                Text("Allāhumma rabba hādhihi-d-daʿwati-t-tāmmah", style = Mihraya.type.caption, color = colors.textTertiary)
+            }
+            when (state) {
+                DuaAudio.State.Ready -> PreviewButton(DUA_PREVIEW, Uri.fromFile(container.duaAudio.file), preview)
+                DuaAudio.State.Downloading -> Box(Modifier.size(38.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = colors.accent, strokeWidth = 2.dp, modifier = Modifier.size(16.dp))
+                }
+                else -> CircleIconButton(
+                    icon = Icons.Rounded.PlayArrow,
+                    contentDescription = "Preview",
+                    onClick = {
+                        previewRequested = true
+                        container.appScope.launch { container.duaAudio.ensure() }
+                    },
+                    size = 38.dp,
+                    iconSize = 18.dp,
+                    filled = false,
+                    tint = colors.textSecondary,
+                )
+            }
+        }
+        Salah.entries.filter { it.isPrayer }.forEach { salah ->
+            SettingsDivider()
+            val mode = alerts.modeFor(salah)
+            SettingsSwitchRow(
+                title = salah.label,
+                checked = salah in alerts.duaAfterAdhan,
+                onCheckedChange = { on ->
+                    onChange { a -> a.copy(duaAfterAdhan = if (on) a.duaAfterAdhan + salah else a.duaAfterAdhan - salah) }
+                },
+                subtitle = if (mode != AlertMode.Adhan) "Alert is set to ${mode.label.lowercase()}" else null,
+                enabled = mode == AlertMode.Adhan,
             )
         }
     }
 }
+
+private const val DUA_PREVIEW = "dua"
 
 @Composable
 private fun UpcomingAlerts(settings: AppSettings, use24h: Boolean) {
@@ -350,18 +538,18 @@ private fun UpcomingAlerts(settings: AppSettings, use24h: Boolean) {
     }
 }
 
-/** Plays a short preview of an Adhan sound through the media stream. */
+/** Plays a preview of an Adhan or the dua through the media stream. */
 @Stable
 private class SoundPreview(private val context: Context) {
-    var playing by mutableStateOf<AdhanSound?>(null)
+    var playing by mutableStateOf<Any?>(null)
         private set
     private var player: MediaPlayer? = null
 
-    fun play(sound: AdhanSound, uri: Uri) {
+    fun play(key: Any, uri: Uri) {
         stop()
         val mp = MediaPlayer()
         player = mp
-        playing = sound
+        playing = key
         try {
             mp.setAudioAttributes(
                 AudioAttributes.Builder()

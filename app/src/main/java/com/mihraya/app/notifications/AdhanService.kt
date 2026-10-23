@@ -22,9 +22,12 @@ import com.mihraya.app.data.prayer.Salah
 import com.mihraya.app.data.settings.AdhanSound
 import com.mihraya.app.data.settings.AlertPreferences
 import com.mihraya.app.data.settings.AppSettings
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -33,6 +36,7 @@ class AdhanService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var player: MediaPlayer? = null
+    private var sequence: Job? = null
     private var focusRequest: AudioFocusRequest? = null
     private var notificationId = 0
     private var salah: Salah? = null
@@ -57,6 +61,7 @@ class AdhanService : Service() {
     }
 
     private fun startAdhan(prayer: Salah, time: Instant) {
+        sequence?.cancel()
         releasePlayer()
         salah = prayer
         at = time
@@ -84,13 +89,19 @@ class AdhanService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK else 0,
         )
         appContainer.adhanPlaying.value = true
-        scope.launch {
+        sequence = scope.launch {
             val alerts = appContainer.settings.current().alerts
-            play(soundUri(this@AdhanService, alerts))
+            val dua = if (prayer in alerts.duaAfterAdhan) async { appContainer.duaAudio.ensure() } else null
+            val adhanDone = CompletableDeferred<Unit>()
+            play(soundUri(this@AdhanService, alerts, prayer)) { adhanDone.complete(Unit) }
+            adhanDone.await()
+            val file = dua?.await()
+            if (file != null) play(Uri.fromFile(file), fallback = false) else finish()
         }
     }
 
-    private fun play(uri: Uri) {
+    private fun play(uri: Uri, fallback: Boolean = true, onComplete: () -> Unit = ::finish) {
+        releasePlayer()
         val attributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -108,21 +119,21 @@ class AdhanService : Service() {
             mp.setAudioAttributes(attributes)
             mp.setDataSource(this, uri)
             mp.setOnPreparedListener { it.start() }
-            mp.setOnCompletionListener { finish() }
+            mp.setOnCompletionListener { onComplete() }
             mp.setOnErrorListener { _, _, _ ->
-                if (uri != builtInUri(this, R.raw.adhan_azeez)) {
-                    releasePlayer()
-                    play(builtInUri(this, R.raw.adhan_azeez))
-                } else {
-                    finish()
-                }
+                fail(uri, fallback, onComplete)
                 true
             }
             mp.prepareAsync()
         } catch (e: Exception) {
-            releasePlayer()
-            if (uri != builtInUri(this, R.raw.adhan_azeez)) play(builtInUri(this, R.raw.adhan_azeez)) else finish()
+            fail(uri, fallback, onComplete)
         }
+    }
+
+    private fun fail(uri: Uri, fallback: Boolean, onComplete: () -> Unit) {
+        releasePlayer()
+        val default = builtInUri(this, R.raw.adhan_makkah)
+        if (fallback && uri != default) play(default, fallback = false, onComplete) else onComplete()
     }
 
     private fun finish() {
@@ -181,10 +192,24 @@ class AdhanService : Service() {
             false
         }
 
-        fun soundUri(context: Context, alerts: AlertPreferences): Uri = when (alerts.adhanSound) {
-            AdhanSound.Azeez -> builtInUri(context, R.raw.adhan_azeez)
-            AdhanSound.Mahfoudou -> builtInUri(context, R.raw.adhan_mahfoudou)
-            AdhanSound.Custom -> alerts.customSoundUri?.let(Uri::parse) ?: builtInUri(context, R.raw.adhan_azeez)
+        fun soundUri(context: Context, alerts: AlertPreferences, salah: Salah): Uri =
+            soundUri(context, alerts.soundFor(salah), alerts.customSoundUri)
+
+        fun soundUri(context: Context, sound: AdhanSound, customUri: String?): Uri = when (sound) {
+            AdhanSound.Custom -> customUri?.let(Uri::parse) ?: builtInUri(context, R.raw.adhan_makkah)
+            else -> builtInUri(context, rawRes(sound))
+        }
+
+        private fun rawRes(sound: AdhanSound): Int = when (sound) {
+            AdhanSound.Makkah, AdhanSound.Custom -> R.raw.adhan_makkah
+            AdhanSound.KualaLumpur -> R.raw.adhan_klcc
+            AdhanSound.Ahmedabad -> R.raw.adhan_mirza
+            AdhanSound.Javed -> R.raw.adhan_javed
+            AdhanSound.Shalqar -> R.raw.adhan_shalqar
+            AdhanSound.Azeez -> R.raw.adhan_azeez
+            AdhanSound.Mahfoudou -> R.raw.adhan_mahfoudou
+            AdhanSound.MalmoFajr -> R.raw.adhan_fajr_malmo
+            AdhanSound.FouadFajr -> R.raw.adhan_fajr_fouad
         }
 
         fun builtInUri(context: Context, resId: Int): Uri =

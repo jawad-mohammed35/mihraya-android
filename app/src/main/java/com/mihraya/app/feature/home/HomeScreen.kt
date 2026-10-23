@@ -28,7 +28,6 @@ import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.Nightlight
-import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.WbSunny
 import androidx.compose.material3.Icon
@@ -43,11 +42,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,13 +81,10 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import kotlin.math.roundToInt
-
 data class HomeActions(
     val openReader: (surah: Int, ayah: Int) -> Unit,
     val openTimetable: () -> Unit,
     val openLocation: () -> Unit,
-    val openNotifications: () -> Unit,
     val openTasbih: () -> Unit,
     val openQibla: () -> Unit,
     val openListen: () -> Unit,
@@ -114,6 +113,7 @@ fun HomeScreen(actions: HomeActions) {
         ) {
             item(key = "header") {
                 Header(
+                    name = d.settings.userName.trim(),
                     locationName = d.settings.location?.name,
                     hijri = d.hijri?.let { "${it.day} ${it.monthName}" },
                     hijriArabic = d.hijri?.let { "${it.day.arabicDigits()} ${it.monthArabic}" },
@@ -122,7 +122,7 @@ fun HomeScreen(actions: HomeActions) {
                         append(TimeFormat.longDate(d.date.atStartOfDay(d.schedule?.zone ?: ZoneId.systemDefault())))
                     },
                     onLocation = actions.openLocation,
-                    onNotifications = actions.openNotifications,
+                    onQibla = actions.openQibla,
                     modifier = item,
                 )
             }
@@ -207,12 +207,13 @@ private fun AmbientGlow() {
 
 @Composable
 private fun Header(
+    name: String,
     locationName: String?,
     hijri: String?,
     hijriArabic: String?,
     subtitle: String,
     onLocation: () -> Unit,
-    onNotifications: () -> Unit,
+    onQibla: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = Mihraya.colors
@@ -238,11 +239,23 @@ private fun Header(
                 )
                 Icon(Icons.Rounded.KeyboardArrowDown, null, tint = colors.textTertiary, modifier = Modifier.size(18.dp))
             }
-            CircleIconButton(Icons.Rounded.NotificationsActive, "Prayer notifications", onNotifications)
+            CircleIconButton(MihrayaIcons.Qibla, "Qibla direction", onQibla, tint = colors.accent)
         }
         Spacer(Modifier.height(18.dp))
-        Text("ASSALĀMU ʿALAYKUM", style = Mihraya.type.overline, color = colors.textTertiary)
-        Spacer(Modifier.height(6.dp))
+        Text(
+            buildAnnotatedString {
+                append("Assalamu Alaykum")
+                if (name.isNotEmpty()) {
+                    append(", ")
+                    withStyle(SpanStyle(color = colors.textPrimary, fontWeight = FontWeight.SemiBold)) { append(name) }
+                }
+            },
+            style = Mihraya.type.body,
+            color = colors.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 hijri ?: TimeFormat.longDate(ZonedDateTime.now()),
@@ -528,6 +541,7 @@ private fun DayNoteCard(note: DayNote, onAction: () -> Unit, modifier: Modifier 
 
 @Composable
 private fun QuickAccess(dashboard: HomeDashboard, actions: HomeActions, modifier: Modifier = Modifier) {
+    val colors = Mihraya.colors
     val lastRead = dashboard.lastRead
     val readTitle = lastRead?.let { "${QuranMeta.surah(it.surah).name} · ${it.surah}:${it.ayah}" } ?: "Al-Fātiḥah"
     val readProgress = lastRead?.let { "Juzʾ ${QuranMeta.juzOf(it.surah, it.ayah)} of ${QuranMeta.JUZ_COUNT}" } ?: "Begin your journey"
@@ -555,23 +569,20 @@ private fun QuickAccess(dashboard: HomeDashboard, actions: HomeActions, modifier
                 modifier = Modifier.weight(1f),
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            QuickTile(
-                icon = MihrayaIcons.Qibla,
-                label = "Qibla",
-                title = dashboard.qiblaBearing?.let { "${it.roundToInt()}° from North" } ?: "Find direction",
-                subtitle = "Face the Kaʿbah",
-                onClick = actions.openQibla,
-                modifier = Modifier.weight(1f),
-            )
-            QuickTile(
-                icon = MihrayaIcons.Tasbih,
-                label = "Tasbīḥ",
-                title = if (dashboard.tasbihToday > 0) "${dashboard.tasbihToday} today" else "Remember Allah",
-                subtitle = "Digital dhikr counter",
-                onClick = actions.openTasbih,
-                modifier = Modifier.weight(1f),
-            )
+        GlassCard(onClick = actions.openTasbih, shape = RoundedCornerShape(24.dp), contentPadding = PaddingValues(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconTile(MihrayaIcons.Tasbih)
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Tasbīḥ", style = Mihraya.type.caption, color = colors.textTertiary)
+                    Text(
+                        if (dashboard.tasbihToday > 0) "${dashboard.tasbihToday} today" else "Remember Allah",
+                        style = Mihraya.type.titleSmall,
+                        color = colors.textPrimary,
+                    )
+                }
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = colors.textTertiary, modifier = Modifier.size(20.dp))
+            }
         }
     }
 }

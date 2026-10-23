@@ -59,9 +59,10 @@ object MediaItems {
         return (1..114).map { build(reciter, it, downloads, artwork) }
     }
 
-    fun resolve(context: Context, item: MediaItem, downloads: AudioDownloads): MediaItem {
-        val key = MediaIds.parse(item.mediaId) ?: return item
-        val reciter = Reciters.find(key.reciterId) ?: return item
+    /** Returns null for ids this app does not publish, so other apps cannot inject unplayable items. */
+    fun resolve(context: Context, item: MediaItem, downloads: AudioDownloads): MediaItem? {
+        val key = MediaIds.parse(item.mediaId) ?: return null
+        val reciter = Reciters.find(key.reciterId) ?: return null
         return build(reciter, key.surah, downloads, ArtworkCache.cachedUri(context, reciter))
     }
 }

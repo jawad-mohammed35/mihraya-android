@@ -3,6 +3,7 @@ package com.mihraya.app
 import android.app.Application
 import android.content.Context
 import com.mihraya.app.data.audio.AudioDownloads
+import com.mihraya.app.data.audio.DuaAudio
 import com.mihraya.app.data.library.LibraryRepository
 import com.mihraya.app.data.location.LocationRepository
 import com.mihraya.app.data.prayer.PrayerCalculator
@@ -49,6 +50,7 @@ class AppContainer(private val app: Application) {
     val location = LocationRepository(app, http, json)
     val quran = QuranRepository(app, http, json, appScope)
     val audioDownloads = AudioDownloads(app)
+    val duaAudio = DuaAudio(app, http)
     val player = PlayerConnection(app, appScope, library, audioDownloads)
     val alarms = PrayerAlarmScheduler(app, prayerCalculator)
 

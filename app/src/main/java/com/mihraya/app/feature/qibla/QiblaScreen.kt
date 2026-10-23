@@ -73,12 +73,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import com.mihraya.app.core.designsystem.components.GlassCard
 import com.mihraya.app.core.designsystem.components.PrimaryButton
-import com.mihraya.app.core.designsystem.components.ScreenHeader
 import com.mihraya.app.core.designsystem.components.SecondaryButton
+import com.mihraya.app.core.designsystem.components.TopBar
 import com.mihraya.app.core.designsystem.icons.MihrayaIcons
 import com.mihraya.app.core.designsystem.theme.Manrope
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.util.rememberHaptics
+import com.mihraya.app.data.settings.DistanceUnit
+import com.mihraya.app.data.settings.SavedLocation
 import com.mihraya.app.ui.LocalAppContainer
 import com.mihraya.app.ui.LocalBottomInset
 import java.util.Locale
@@ -90,25 +92,34 @@ import kotlin.math.sin
 private const val ALIGN_TOLERANCE = 3f
 
 @Composable
-fun QiblaScreen(onSetLocation: () -> Unit) {
+fun QiblaScreen(onBack: () -> Unit, onSetLocation: () -> Unit) {
     val container = LocalAppContainer.current
     val settings by container.settings.state.collectAsStateWithLifecycle()
     val location = settings?.location
-    val colors = Mihraya.colors
+    val unit = settings?.distanceUnit ?: DistanceUnit.Kilometers
 
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
             .padding(bottom = LocalBottomInset.current + 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        ScreenHeader(
-            "Qibla",
+        TopBar(
+            title = "Qibla",
             subtitle = location?.let { "From ${it.name}" } ?: "Direction of the Kaʿbah",
-            modifier = Modifier.widthIn(max = 560.dp),
+            onBack = onBack,
+            modifier = Modifier.widthIn(max = 600.dp),
         )
+        QiblaContent(location, unit, onSetLocation)
+    }
+}
+
+@Composable
+private fun QiblaContent(location: SavedLocation?, unit: DistanceUnit, onSetLocation: () -> Unit) {
+    val container = LocalAppContainer.current
+    val colors = Mihraya.colors
+    Column(Modifier.padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         if (location == null) {
             GlassCard(Modifier.widthIn(max = 560.dp).fillMaxWidth().padding(top = 24.dp), contentPadding = PaddingValues(24.dp)) {
                 Icon(MihrayaIcons.Qibla, null, tint = colors.accent, modifier = Modifier.size(32.dp))
@@ -135,12 +146,12 @@ fun QiblaScreen(onSetLocation: () -> Unit) {
         val declination = remember(location.latitude, location.longitude) {
             GeomagneticField(location.latitude.toFloat(), location.longitude.toFloat(), 0f, System.currentTimeMillis()).declination
         }
-        QiblaCompass(bearing = bearing, declination = declination, distanceKm = distance)
+        QiblaCompass(bearing = bearing, declination = declination, distance = unit.fromKm(distance), unit = unit)
     }
 }
 
 @Composable
-private fun QiblaCompass(bearing: Float, declination: Float, distanceKm: Double) {
+private fun QiblaCompass(bearing: Float, declination: Float, distance: Double, unit: DistanceUnit) {
     val context = LocalContext.current
     val view = LocalView.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -308,7 +319,7 @@ private fun QiblaCompass(bearing: Float, declination: Float, distanceKm: Double)
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            String.format(Locale.US, "Qibla %d° %s · %,d km to Makkah", bearing.roundToInt(), cardinal(bearing), distanceKm.roundToInt()),
+            String.format(Locale.US, "Qibla %d° %s · %,d %s to Makkah", bearing.roundToInt(), cardinal(bearing), distance.roundToInt(), unit.symbol),
             style = Mihraya.type.bodySmall,
             color = colors.textTertiary,
             textAlign = TextAlign.Center,

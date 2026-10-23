@@ -1,5 +1,6 @@
 package com.mihraya.app.feature.settings
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -19,6 +20,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocationOff
@@ -34,11 +37,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,6 +68,7 @@ import com.mihraya.app.ui.LocalAppContainer
 import com.mihraya.app.ui.rememberLocationRequest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 import java.util.Locale
 import kotlin.math.abs
@@ -190,10 +196,13 @@ private sealed interface CitySearchState {
 }
 
 /** City search backed by the Open-Meteo geocoding API. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CitySearch(onPick: (PlaceResult) -> Unit, modifier: Modifier = Modifier) {
     val container = LocalAppContainer.current
     val colors = Mihraya.colors
+    val scope = rememberCoroutineScope()
+    val bringIntoView = remember { BringIntoViewRequester() }
     var query by rememberSaveable { mutableStateOf("") }
     var state by remember { mutableStateOf<CitySearchState>(CitySearchState.Idle) }
 
@@ -214,6 +223,10 @@ fun CitySearch(onPick: (PlaceResult) -> Unit, modifier: Modifier = Modifier) {
         }
     }
 
+    LaunchedEffect(state) {
+        if (state !is CitySearchState.Idle) bringIntoView.bringIntoView()
+    }
+
     Column(modifier.fillMaxWidth()) {
         SectionLabel("Search for a city")
         Spacer(Modifier.height(10.dp))
@@ -221,6 +234,11 @@ fun CitySearch(onPick: (PlaceResult) -> Unit, modifier: Modifier = Modifier) {
             value = query,
             onValueChange = { query = it },
             placeholder = "City or town",
+            modifier = Modifier
+                .bringIntoViewRequester(bringIntoView)
+                .onFocusChanged { focus ->
+                    if (focus.isFocused) scope.launch { bringIntoView.bringIntoView() }
+                },
             trailing = if (state == CitySearchState.Loading) {
                 {
                     Box(Modifier.size(38.dp), contentAlignment = Alignment.Center) {

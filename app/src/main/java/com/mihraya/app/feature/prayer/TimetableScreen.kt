@@ -133,7 +133,7 @@ private fun DayView(schedule: PrayerSchedule, settings: AppSettings) {
         val rows = buildList {
             add(Triple("Fajr", day.fajr, true))
             add(Triple("Sunrise", day.sunrise, false))
-            add(Triple("Ḍuḥā", day.duhaStart, false))
+            add(Triple("Duha", day.duhaStart, false))
             add(Triple(Salah.Dhuhr.labelOn(date), day.dhuhr, true))
             add(Triple("Asr", day.asr, true))
             add(Triple("Maghrib", day.maghrib, true))

@@ -68,6 +68,26 @@ class QuranRepository(
 
     fun isAvailable(id: Int): Boolean = id in _installed.value
 
+    /**
+     * Urdu used to ship preinstalled. Keep it available for people who already had it selected, by reading the
+     * copy still packaged with the app. New installs do not select it, so it stays a normal download.
+     */
+    fun retainSelectedAssets(selectedIds: Collection<Int>) {
+        val retained = selectedIds.filter { id ->
+            TranslationCatalog.byId(id)?.bundled != true && hasPackagedText(id)
+        }
+        _installed.update { current ->
+            val alreadyKept = current.filter { id ->
+                TranslationCatalog.byId(id)?.bundled != true && hasPackagedText(id)
+            }
+            scanInstalled() + alreadyKept + retained
+        }
+    }
+
+    private fun hasPackagedText(id: Int): Boolean = runCatching {
+        context.assets.open("quran/tr_$id.txt").close()
+    }.isSuccess
+
     private suspend fun edition(name: String): Array<String> {
         editions.get(name)?.let { return it }
         return loadLock.withLock {

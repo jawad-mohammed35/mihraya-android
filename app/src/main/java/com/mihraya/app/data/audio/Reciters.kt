@@ -46,6 +46,26 @@ object Reciters {
             "dosari", "Yasser Al-Dosari", "Al-Dosari", "ياسر الدوسري", "الدوسري",
             "Murattal · Ḥafṣ", "Saudi Arabia", "https://cdn.mp3quran.net/audio/yasser-dosari/r1/", 0xFF2D6470,
         ),
+        Reciter(
+            "minshawi", "Muhammad Siddiq Al-Minshawi", "Al-Minshawi", "محمد صديق المنشاوي", "المنشاوي",
+            "Murattal · Ḥafṣ", "Egypt", "https://cdn.mp3quran.net/audio/muhammad-minshawi/r1/", 0xFF8A4B2F,
+        ),
+        Reciter(
+            "ayyub", "Muhammad Ayyub", "Ayyub", "محمد أيوب", "أيوب",
+            "Murattal · Ḥafṣ", "Madinah", "https://cdn.mp3quran.net/audio/muhammad-ayyub/r1/", 0xFF3E5C4A,
+        ),
+        Reciter(
+            "shatri", "Abu Bakr Al-Shatri", "Al-Shatri", "أبو بكر الشاطري", "الشاطري",
+            "Murattal · Ḥafṣ", "Saudi Arabia", "https://cdn.mp3quran.net/audio/abubakr-shatri/r1/", 0xFF6A3E58,
+        ),
+        Reciter(
+            "qatami", "Nasser Al-Qatami", "Al-Qatami", "ناصر القطامي", "القطامي",
+            "Murattal · Ḥafṣ", "Kuwait", "https://cdn.mp3quran.net/audio/nasser-qatami/r1/", 0xFF3A5878,
+        ),
+        Reciter(
+            "abkar", "Idris Abkar", "Abkar", "إدريس أبكر", "أبكر",
+            "Murattal · Ḥafṣ", "Eritrea", "https://cdn.mp3quran.net/audio/idrees-abkar/r1/", 0xFF7A6230,
+        ),
     )
 
     val Default: Reciter = all.first()

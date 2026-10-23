@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import com.mihraya.app.data.settings.AccentColor
 import com.mihraya.app.data.settings.ThemeMode
 
-val LocalMihrayaColors = staticCompositionLocalOf { darkPalette(AccentColor.Emerald) }
+val LocalMihrayaColors = staticCompositionLocalOf { darkPalette(AccentColor.Champagne) }
 val LocalMihrayaType = staticCompositionLocalOf { DefaultType }
 val LocalHapticsEnabled = staticCompositionLocalOf { true }
 val LocalUse24Hour = staticCompositionLocalOf { false }
@@ -45,10 +45,11 @@ private fun animated(target: Color): Color {
 fun MihrayaTheme(
     mode: ThemeMode,
     accent: AccentColor,
+    pureBlack: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val dark = isDarkTheme(mode)
-    val target = if (dark) darkPalette(accent) else lightPalette(accent)
+    val target = if (dark) darkPalette(accent, pureBlack = pureBlack && mode == ThemeMode.Dark) else lightPalette(accent)
     val colors = target.copy(
         background = animated(target.background),
         surface = animated(target.surface),

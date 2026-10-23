@@ -35,7 +35,6 @@ import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -77,10 +76,7 @@ import com.mihraya.app.playback.SleepTimer
 import com.mihraya.app.ui.LocalAppContainer
 import com.mihraya.app.ui.PlayPauseButton
 import kotlinx.coroutines.launch
-import java.util.Locale
 import kotlin.math.roundToInt
-
-private val speeds = listOf(0.75f, 1f, 1.25f, 1.5f)
 
 @Composable
 fun PlayerScreen(onCollapse: () -> Unit, onOpenReader: (surah: Int) -> Unit) {
@@ -292,31 +288,13 @@ fun PlayerScreen(onCollapse: () -> Unit, onOpenReader: (surah: Int) -> Unit) {
                 )
             }
 
-            Spacer(Modifier.height(18.dp))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (state.sleepTimer != SleepTimer.Off) {
+                Spacer(Modifier.height(18.dp))
                 Pill(
-                    text = String.format(Locale.US, "%s×", trimSpeed(state.speed)),
-                    selected = state.speed != 1f,
-                    leading = Icons.Rounded.Speed,
-                    onClick = {
-                        val next = speeds[(speeds.indexOf(state.speed).coerceAtLeast(0) + 1) % speeds.size]
-                        player.setSpeed(next)
-                    },
-                )
-                if (state.sleepTimer != SleepTimer.Off) {
-                    Pill(
-                        text = state.sleepTimer.label,
-                        selected = true,
-                        leading = Icons.Rounded.Bedtime,
-                        onClick = { showSleep = true },
-                    )
-                }
-                Pill(
-                    text = "Read along",
-                    selected = false,
-                    leading = Icons.AutoMirrored.Rounded.MenuBook,
-                    onClick = { onOpenReader(surah.number) },
+                    text = state.sleepTimer.label,
+                    selected = true,
+                    leading = Icons.Rounded.Bedtime,
+                    onClick = { showSleep = true },
                 )
             }
 
@@ -335,6 +313,3 @@ fun PlayerScreen(onCollapse: () -> Unit, onOpenReader: (surah: Int) -> Unit) {
         )
     }
 }
-
-private fun trimSpeed(speed: Float): String =
-    if (speed % 1f == 0f) String.format(Locale.US, "%.0f", speed) else String.format(Locale.US, "%.2f", speed).trimEnd('0')

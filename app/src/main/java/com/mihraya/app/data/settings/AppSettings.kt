@@ -4,13 +4,19 @@ import com.mihraya.app.data.prayer.AsrMethod
 import com.mihraya.app.data.prayer.CalcMethod
 import com.mihraya.app.data.prayer.HighLatitude
 import com.mihraya.app.data.prayer.Salah
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.time.DateTimeException
 import java.time.ZoneId
 
 @Serializable
 enum class ThemeMode(val label: String) {
-    Dark("OLED Black"),
+    Dark("Black"),
     Light("Light"),
     System("System"),
 }
@@ -32,15 +38,12 @@ enum class AlertMode(val label: String, val description: String) {
 }
 
 /** [fajrOnly] recordings include “aṣ-ṣalātu khayrun min an-nawm” and are only offered for Fajr. */
-@Serializable
+@Serializable(with = AdhanSoundSerializer::class)
 enum class AdhanSound(val label: String, val detail: String, val fajrOnly: Boolean = false) {
     Makkah("Makkah", "Masjid al-Ḥarām"),
     KualaLumpur("Kuala Lumpur", "Masjid KLCC, Malaysia"),
-    Ahmedabad("Ahmedabad", "Moazzam Mirza, India"),
-    Javed("Asim Javed", "Friday Adhan"),
     Shalqar("Shalqar", "Kazakhstan"),
     Azeez("Aaqib Azeez", ""),
-    Mahfoudou("Mahfoudou", ""),
     MalmoFajr("Malmö", "Fajr Adhan · Sweden", fajrOnly = true),
     FouadFajr("Fouad", "Fajr Adhan", fajrOnly = true),
     Custom("Your own audio", "Pick any audio file on this device"),
@@ -158,7 +161,9 @@ data class AppSettings(
     val onboardingDone: Boolean = false,
     val userName: String = "",
     val theme: ThemeMode = ThemeMode.Dark,
-    val accent: AccentColor = AccentColor.Emerald,
+    /** True black backgrounds. Applies only while [theme] is [ThemeMode.Dark]. */
+    val pureOledBlack: Boolean = false,
+    val accent: AccentColor = AccentColor.Champagne,
     val use24Hour: Boolean = false,
     val distanceUnit: DistanceUnit = DistanceUnit.Kilometers,
     val haptics: Boolean = true,
@@ -170,3 +175,15 @@ data class AppSettings(
     val reader: ReaderPreferences = ReaderPreferences(),
     val reciterId: String = "alafasy",
 )
+
+/** Older installs may still name Adhan sounds that are no longer offered. Those load as Makkah. */
+private object AdhanSoundSerializer : KSerializer<AdhanSound> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("AdhanSound", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: AdhanSound) = encoder.encodeString(value.name)
+
+    override fun deserialize(decoder: Decoder): AdhanSound = when (val name = decoder.decodeString()) {
+        "Ahmedabad", "Javed", "Mahfoudou" -> AdhanSound.Makkah
+        else -> AdhanSound.entries.find { it.name == name } ?: AdhanSound.Makkah
+    }
+}

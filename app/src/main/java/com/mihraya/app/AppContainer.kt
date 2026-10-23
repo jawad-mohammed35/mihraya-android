@@ -84,6 +84,18 @@ class AppContainer(private val app: Application) {
                 .distinctUntilChanged()
                 .collect { alarms.reschedule(settings.current()) }
         }
+        appScope.launch {
+            settings.flow
+                .map { it.reader.translations }
+                .distinctUntilChanged()
+                .collect { quran.retainSelectedAssets(it) }
+        }
+        appScope.launch {
+            val fajr = settings.current().alerts.fajrSound
+            if (fajr != null && !fajr.fajrOnly) {
+                settings.update { it.copy(alerts = it.alerts.copy(fajrSound = null)) }
+            }
+        }
     }
 
     private companion object {

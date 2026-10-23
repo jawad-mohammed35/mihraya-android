@@ -1,6 +1,7 @@
 package com.mihraya.app
 
 import com.mihraya.app.data.prayer.Salah
+import com.mihraya.app.data.settings.AccentColor
 import com.mihraya.app.data.settings.AdhanSound
 import com.mihraya.app.data.settings.AlertPreferences
 import com.mihraya.app.data.settings.AppSettings
@@ -34,7 +35,18 @@ class SettingsTest {
         val alerts = AlertPreferences(adhanSound = AdhanSound.FouadFajr)
         assertEquals(AdhanSound.Makkah, alerts.soundFor(Salah.Dhuhr))
         assertTrue(AdhanSound.regular.none { it.fajrOnly })
-        assertTrue(AdhanSound.regular.size >= 7)
+        assertEquals(listOf("Makkah", "KualaLumpur", "Shalqar", "Azeez"), AdhanSound.regular.map { it.name })
+    }
+
+    @Test
+    fun removedAdhansLoadAsMakkahAndSavedAccentIsKept() {
+        val stored = """{"accent":"Emerald","alerts":{"adhanSound":"Ahmedabad","fajrSound":"Javed"}}"""
+        val settings = json.decodeFromString(AppSettings.serializer(), stored)
+        assertEquals(AdhanSound.Makkah, settings.alerts.adhanSound)
+        assertEquals(AdhanSound.Makkah, settings.alerts.fajrSound)
+        assertEquals(AccentColor.Emerald, settings.accent)
+        assertEquals(AccentColor.Champagne, AppSettings().accent)
+        assertEquals(false, AppSettings().pureOledBlack)
     }
 
     @Test

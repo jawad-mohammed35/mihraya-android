@@ -109,7 +109,7 @@ fun HomeScreen(actions: HomeActions) {
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = LocalBottomInset.current + 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item(key = "header") {
                 Header(
@@ -241,7 +241,7 @@ private fun Header(
             }
             CircleIconButton(MihrayaIcons.Qibla, "Qibla direction", onQibla, tint = colors.accent)
         }
-        Spacer(Modifier.height(18.dp))
+        Spacer(Modifier.height(12.dp))
         Text(
             buildAnnotatedString {
                 append("Assalamu Alaykum")
@@ -340,7 +340,7 @@ private fun NextPrayerCard(
         if (total > 0) Duration.between(it.time, zoned).seconds / total else 0f
     } ?: 0f
 
-    GlassCard(modifier, onClick = onClick, contentPadding = PaddingValues(start = 22.dp, end = 22.dp, top = 22.dp, bottom = 20.dp)) {
+    GlassCard(modifier, onClick = onClick, contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 14.dp, bottom = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("NEXT PRAYER", style = Mihraya.type.overline, color = colors.accent, modifier = Modifier.weight(1f))
             Text(
@@ -349,11 +349,11 @@ private fun NextPrayerCard(
                 color = colors.textSecondary,
             )
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 next.salah.labelOn(next.time.toLocalDate()),
-                style = Mihraya.type.headline.copy(fontSize = 34.sp, lineHeight = 40.sp),
+                style = Mihraya.type.headline.copy(fontSize = 28.sp, lineHeight = 32.sp),
                 color = colors.textPrimary,
                 modifier = Modifier.weight(1f),
             )
@@ -362,22 +362,21 @@ private fun NextPrayerCard(
                 style = Mihraya.type.title.copy(
                     fontFamily = ArabicFonts.Amiri,
                     fontWeight = FontWeight.Normal,
-                    fontSize = 28.sp,
-                    lineHeight = 40.sp,
+                    fontSize = 24.sp,
+                    lineHeight = 32.sp,
                     textDirection = TextDirection.Rtl,
                 ),
                 color = colors.accent,
             )
         }
-        Spacer(Modifier.height(4.dp))
         Text(
             TimeFormat.countdown(remaining),
-            style = Mihraya.type.display,
+            style = Mihraya.type.display.copy(fontSize = 40.sp, lineHeight = 44.sp),
             color = colors.textPrimary,
         )
-        Spacer(Modifier.height(16.dp))
-        ProgressLine(fraction)
         Spacer(Modifier.height(10.dp))
+        ProgressLine(fraction)
+        Spacer(Modifier.height(8.dp))
         Row {
             previous?.let {
                 LabeledValue(
@@ -441,7 +440,7 @@ private fun TodayCard(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 54.dp)
+                    .heightIn(min = 46.dp)
                     .padding(start = 20.dp, end = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -485,7 +484,7 @@ private fun TodayCard(
 private fun SunnahRow(today: PrayerDay, night: PrayerDay, modifier: Modifier = Modifier) {
     val use24h = LocalUse24Hour.current
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        SunnahTile("Ḍuḥā", TimeFormat.full(today.duhaStart, use24h), Icons.Rounded.WbSunny, Modifier.weight(1f))
+        SunnahTile("Duha", TimeFormat.full(today.duhaStart, use24h), Icons.Rounded.WbSunny, Modifier.weight(1f))
         SunnahTile("Midnight", TimeFormat.full(night.midnight, use24h), Icons.Rounded.Bedtime, Modifier.weight(1f))
         SunnahTile("Last third", TimeFormat.full(night.lastThird, use24h), Icons.Rounded.Nightlight, Modifier.weight(1f))
     }

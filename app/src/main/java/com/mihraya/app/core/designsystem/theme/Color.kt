@@ -31,17 +31,17 @@ fun accentFor(accent: AccentColor, dark: Boolean): Color = when (accent) {
     AccentColor.Lapis -> if (dark) Color(0xFF93B4E6) else Color(0xFF2F5A9A)
 }
 
-fun darkPalette(accent: AccentColor): MihrayaColors {
+fun darkPalette(accent: AccentColor, pureBlack: Boolean = false): MihrayaColors {
     val a = accentFor(accent, dark = true)
     val ink = Color(0xFFF3F1EC)
     return MihrayaColors(
         isDark = true,
-        background = Color.Black,
-        surface = Color(0xFF0C0C0D),
-        surfaceRaised = Color(0xFF151517),
-        glass = Color.White.copy(alpha = 0.045f),
-        glassStrong = Color(0xFF141416).copy(alpha = 0.70f),
-        glassBorder = Color.White.copy(alpha = 0.08f),
+        background = if (pureBlack) Color.Black else Color(0xFF101114),
+        surface = if (pureBlack) Color(0xFF0C0C0D) else Color(0xFF17181C),
+        surfaceRaised = if (pureBlack) Color(0xFF151517) else Color(0xFF1F2126),
+        glass = Color.White.copy(alpha = if (pureBlack) 0.045f else 0.055f),
+        glassStrong = (if (pureBlack) Color(0xFF141416) else Color(0xFF1C1E24)).copy(alpha = 0.72f),
+        glassBorder = Color.White.copy(alpha = if (pureBlack) 0.08f else 0.09f),
         glassHighlight = Color.White.copy(alpha = 0.17f),
         textPrimary = ink,
         textSecondary = ink.copy(alpha = 0.62f),

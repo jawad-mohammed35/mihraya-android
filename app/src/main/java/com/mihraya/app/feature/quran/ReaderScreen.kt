@@ -29,7 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
@@ -57,6 +57,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -130,7 +131,7 @@ fun ReaderScreen(
     val bookmarks by vm.bookmarks.collectAsStateWithLifecycle()
     val playback by vm.playback.collectAsStateWithLifecycle()
     val colors = Mihraya.colors
-    val listState = rememberLazyListState()
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val scope = rememberCoroutineScope()
     val haze = remember { HazeState() }
     val view = LocalView.current
@@ -153,8 +154,8 @@ fun ReaderScreen(
 
     LaunchedEffect(current?.surah?.number, layout) {
         val c = current ?: return@LaunchedEffect
-        val target = vm.consumePendingAyah()
-        listState.scrollToItem(if (target != null) itemIndexFor(target, c.prefs.layout) else 0)
+        val target = vm.consumePendingAyah() ?: return@LaunchedEffect
+        listState.scrollToItem(itemIndexFor(target, c.prefs.layout))
     }
 
     val visibleAyah by remember(current, layout) {

@@ -1,5 +1,7 @@
 package com.mihraya.app.ui
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +39,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -95,6 +99,16 @@ fun MihrayaRoot(settings: AppSettings, openPlayerRequests: StateFlow<Int>) {
     }
 
     val entry by navController.currentBackStackEntryAsState()
+    val reading = entry?.destination?.hasRoute<ReaderRoute>() == true
+    val context = LocalContext.current
+    DisposableEffect(reading, playerExpanded) {
+        (context as? Activity)?.requestedOrientation = if (reading && !playerExpanded) {
+            ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        onDispose { }
+    }
     val currentTop = TopLevel.entries.firstOrNull { top ->
         entry?.destination?.hierarchy?.any { it.hasRoute(top.route::class) } == true
     }

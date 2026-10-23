@@ -203,11 +203,8 @@ class AdhanService : Service() {
         private fun rawRes(sound: AdhanSound): Int = when (sound) {
             AdhanSound.Makkah, AdhanSound.Custom -> R.raw.adhan_makkah
             AdhanSound.KualaLumpur -> R.raw.adhan_klcc
-            AdhanSound.Ahmedabad -> R.raw.adhan_mirza
-            AdhanSound.Javed -> R.raw.adhan_javed
             AdhanSound.Shalqar -> R.raw.adhan_shalqar
             AdhanSound.Azeez -> R.raw.adhan_azeez
-            AdhanSound.Mahfoudou -> R.raw.adhan_mahfoudou
             AdhanSound.MalmoFajr -> R.raw.adhan_fajr_malmo
             AdhanSound.FouadFajr -> R.raw.adhan_fajr_fouad
         }

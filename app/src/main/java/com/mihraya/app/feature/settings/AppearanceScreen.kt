@@ -66,6 +66,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     ThemeCard(
                         mode = mode,
                         accent = settings.accent,
+                        pureBlack = settings.pureOledBlack && mode == ThemeMode.Dark,
                         selected = settings.theme == mode,
                         onClick = {
                             haptics.tap()
@@ -77,7 +78,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
             }
             Spacer(Modifier.height(10.dp))
             Text(
-                "OLED Black uses true #000000 so unlit pixels stay off — easiest on the eyes and the battery.",
+                "Black is a deep charcoal. Turn on Pure OLED Black in Display for true black backgrounds.",
                 style = Mihraya.type.caption,
                 color = Mihraya.colors.textTertiary,
                 modifier = Modifier.padding(horizontal = 6.dp),
@@ -104,6 +105,18 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
         SettingsGroup("Display") {
             SettingsSwitchRow(
+                title = "Pure OLED Black",
+                checked = settings.pureOledBlack,
+                enabled = settings.theme == ThemeMode.Dark,
+                onCheckedChange = { enabled -> container.settings.edit { it.copy(pureOledBlack = enabled) } },
+                subtitle = if (settings.theme == ThemeMode.Dark) {
+                    "True black backgrounds for OLED screens"
+                } else {
+                    "Available when Black is selected"
+                },
+            )
+            SettingsDivider()
+            SettingsSwitchRow(
                 title = "24-hour time",
                 checked = settings.use24Hour,
                 onCheckedChange = { v -> container.settings.edit { it.copy(use24Hour = v) } },
@@ -124,6 +137,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
 private fun ThemeCard(
     mode: ThemeMode,
     accent: AccentColor,
+    pureBlack: Boolean,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -131,7 +145,7 @@ private fun ThemeCard(
     val colors = Mihraya.colors
     val ring by animateColorAsState(if (selected) colors.accent else Color.Transparent, tween(220), label = "themeRing")
     val shape = RoundedCornerShape(22.dp)
-    val palette = if (mode == ThemeMode.Dark) darkPalette(accent) else lightPalette(accent)
+    val palette = if (mode == ThemeMode.Dark) darkPalette(accent, pureBlack) else lightPalette(accent)
     Column(
         modifier
             .border(1.5.dp, ring, shape)
@@ -151,7 +165,7 @@ private fun ThemeCard(
         ) {
             MiniScreen(palette, Modifier.fillMaxSize().padding(8.dp))
             if (mode == ThemeMode.System) {
-                val dark = darkPalette(accent)
+                val dark = darkPalette(accent, pureBlack = false)
                 Box(
                     Modifier
                         .matchParentSize()

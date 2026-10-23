@@ -1,11 +1,11 @@
 package com.mihraya.app.feature.listen
 
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,21 +19,28 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.DownloadForOffline
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,7 +57,7 @@ import com.mihraya.app.core.designsystem.components.SecondaryButton
 import com.mihraya.app.core.designsystem.components.SectionLabel
 import com.mihraya.app.core.designsystem.components.SegmentedControl
 import com.mihraya.app.core.designsystem.components.StarBadge
-import com.mihraya.app.core.designsystem.components.pressScale
+import com.mihraya.app.core.designsystem.components.glass
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.util.TimeFormat
@@ -117,18 +124,11 @@ fun ListenScreen(onOpenPlayer: () -> Unit, onOpenDownloads: () -> Unit) {
             }
         }
 
-        item(key = "recitersLabel") {
-            SectionLabel("Reciters", item.padding(start = 24.dp, end = 24.dp, top = 14.dp, bottom = 12.dp))
-        }
         item(key = "reciters") {
-            LazyRow(
-                modifier = item,
-                contentPadding = PaddingValues(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                items(Reciters.all, key = { it.id }) { r ->
-                    ReciterCard(r, selected = r.id == reciter.id, onClick = { vm.selectReciter(r) })
-                }
+            Column(item.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
+                SectionLabel("Reciter")
+                Spacer(Modifier.height(10.dp))
+                ReciterDropdown(selected = reciter, onSelect = vm::selectReciter)
             }
         }
 
@@ -286,31 +286,79 @@ private fun NowPlayingCard(
 }
 
 @Composable
-private fun ReciterCard(reciter: Reciter, selected: Boolean, onClick: () -> Unit) {
+private fun ReciterDropdown(selected: Reciter, onSelect: (Reciter) -> Unit) {
     val colors = Mihraya.colors
-    val ring by animateColorAsState(if (selected) colors.accent else Color.Transparent, tween(220), label = "ring")
-    val interaction = remember { MutableInteractionSource() }
-    Column(
-        Modifier
-            .width(132.dp)
-            .pressScale(interaction, 0.96f)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
-    ) {
-        Artwork(
-            hue = reciter.hue,
-            title = reciter.arabicShortName,
-            cornerRadius = 24.dp,
-            modifier = Modifier
-                .size(132.dp)
-                .border(2.dp, ring, RoundedCornerShape(24.dp)),
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            reciter.shortName,
-            style = Mihraya.type.titleSmall.copy(fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold),
-            color = if (selected) colors.accent else colors.textPrimary,
-            maxLines = 1,
-        )
-        Text(reciter.origin, style = Mihraya.type.caption, color = colors.textTertiary, maxLines = 1)
+    val density = LocalDensity.current
+    var expanded by remember { mutableStateOf(false) }
+    var anchorWidth by remember { mutableIntStateOf(0) }
+    val chevron by animateFloatAsState(if (expanded) 180f else 0f, tween(220), label = "chevron")
+    val shape = RoundedCornerShape(22.dp)
+
+    Box(Modifier.fillMaxWidth().onSizeChanged { anchorWidth = it.width }) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .glass(shape, colors)
+                .clickable(role = Role.DropdownList) { expanded = true }
+                .padding(start = 12.dp, end = 14.dp, top = 10.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Artwork(selected.hue, selected.arabicShortName, cornerRadius = 14.dp, modifier = Modifier.size(48.dp))
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(selected.name, style = Mihraya.type.titleSmall, color = colors.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("${selected.style} · ${selected.origin}", style = Mihraya.type.caption, color = colors.textTertiary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Icon(
+                Icons.Rounded.KeyboardArrowDown,
+                contentDescription = "Choose reciter",
+                tint = colors.textTertiary,
+                modifier = Modifier.padding(start = 8.dp).size(22.dp).rotate(chevron),
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(22.dp),
+            containerColor = colors.surfaceRaised,
+            border = BorderStroke(1.dp, colors.glassBorder),
+            shadowElevation = 12.dp,
+            modifier = Modifier.width(with(density) { anchorWidth.toDp() }),
+        ) {
+            Reciters.all.forEachIndexed { index, option ->
+                if (index > 0) HairlineDivider(Modifier.padding(horizontal = 16.dp))
+                val isSelected = option.id == selected.id
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(role = Role.RadioButton) {
+                            expanded = false
+                            onSelect(option)
+                        }
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.size(22.dp), contentAlignment = Alignment.Center) {
+                        if (isSelected) Icon(Icons.Rounded.Check, "Selected", tint = colors.accent, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            option.name,
+                            style = Mihraya.type.body.copy(fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium),
+                            color = if (isSelected) colors.accent else colors.textPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(option.origin, style = Mihraya.type.caption, color = colors.textTertiary, maxLines = 1)
+                    }
+                    Text(
+                        option.arabicShortName,
+                        style = Mihraya.type.body.copy(fontFamily = ArabicFonts.Amiri, fontSize = 16.sp, textDirection = TextDirection.Rtl),
+                        color = if (isSelected) colors.accent else colors.textSecondary,
+                    )
+                }
+            }
+        }
     }
 }

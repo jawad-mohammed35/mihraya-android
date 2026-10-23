@@ -92,7 +92,7 @@ import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
-private val targetPresets = listOf(33, 99, 100)
+private val targetPresets = listOf(33, 100, 1000)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -129,7 +129,7 @@ fun TasbihScreen() {
             TapFeedback.Tick -> haptics.tap()
             TapFeedback.Milestone -> haptics.milestone()
             TapFeedback.Completed -> {
-                haptics.confirm()
+                haptics.goal()
                 scope.launch {
                     pulse.snapTo(1f)
                     pulse.animateTo(0f, tween(900))
@@ -140,7 +140,7 @@ fun TasbihScreen() {
 
     Column(Modifier.fillMaxSize().padding(bottom = LocalBottomInset.current)) {
         ScreenHeader(
-            "Tasbīḥ",
+            "Tasbih",
             subtitle = "Today · $today",
             modifier = Modifier.padding(horizontal = 20.dp),
             trailing = { CircleIconButton(Icons.Rounded.History, "History", { showHistory = true }) },

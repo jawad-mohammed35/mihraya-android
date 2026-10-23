@@ -20,7 +20,7 @@ object TranslationCatalog {
         TranslationInfo(19, "Marmaduke Pickthall", "English", "en"),
         TranslationInfo(22, "Abdullah Yusuf Ali", "English", "en"),
         TranslationInfo(203, "Al-Hilali & Muhsin Khan", "English", "en"),
-        TranslationInfo(234, "Fatah Muhammad Jalandhari", "Urdu", "ur", bundled = true),
+        TranslationInfo(234, "Fatah Muhammad Jalandhari", "Urdu", "ur"),
         TranslationInfo(54, "Maulana Muhammad Junagarhi", "Urdu", "ur"),
         TranslationInfo(97, "Tafheem-ul-Quran · Abul Ala Maududi", "Urdu", "ur"),
         TranslationInfo(158, "Bayan-ul-Quran · Dr. Israr Ahmad", "Urdu", "ur"),

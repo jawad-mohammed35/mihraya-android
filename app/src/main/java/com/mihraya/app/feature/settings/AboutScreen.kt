@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -48,11 +49,8 @@ private val contentSources = listOf(
 private val adhanCredits = listOf(
     Credit("Makkah", "Maghrib at Masjid al-Ḥarām by 3omar Faruq · CC BY 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Maghrib_Adhan_at_the_Masjid_al_Haram,_Mecca_-_25_Feb,_2012.webm"),
     Credit("Kuala Lumpur", "Masjid KLCC · CC0 · Internet Archive", "https://archive.org/details/AzanZhurMasjidKlcc"),
-    Credit("Ahmedabad", "Moazzam Mirza · Public domain · Internet Archive", "https://archive.org/details/IshaAzanByMoazzambegMirza07092013"),
-    Credit("Asim Javed", "Asim Javed · CC0 · Internet Archive", "https://archive.org/details/icr-friday-prayer-1st-adhan-17th-may-2024-9th-dhul-qadah-1445-by-asim-javed"),
     Credit("Shalqar", "Matey Qoqanuly mosque by Esetok · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Adhan_in_Shalqar_mosque.webm"),
     Credit("Aaqib Azeez", "Uploaded by Atcovi · CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:The_Adhan_-_Muslim_Call_to_Prayer_-_Aaqib_Azeez.mp3"),
-    Credit("Mahfoudou", "CC BY-SA 4.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Islamic_call_to_worship.oga"),
     Credit("Malmö (Fajr)", "Islamic Center Malmö · CC BY 3.0 · Wikimedia Commons", "https://commons.wikimedia.org/wiki/File:Eid_al-Fitr_Fajr_azan_at_Malm%C3%B6_Mosque_-_19_August_2012.webm"),
     Credit("Fouad (Fajr)", "Fouad Adan · Public domain · Internet Archive", "https://archive.org/details/AdanAlfajrFouadAdan"),
     Credit("Dua after the Adhan", "Ḥiṣn al-Muslim, recited by Hamad al-Duraihim · downloaded from hisnmuslim.com", "https://www.hisnmuslim.com/i/ar/15"),
@@ -108,6 +106,37 @@ fun AboutScreen(onBack: () -> Unit) {
                     Text("•", style = Mihraya.type.bodySmall, color = colors.accent, modifier = Modifier.width(14.dp))
                     Text(line, style = Mihraya.type.bodySmall, color = colors.textSecondary)
                 }
+            }
+        }
+
+        GlassCard(contentPadding = PaddingValues(20.dp)) {
+            val uriHandler = LocalUriHandler.current
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Person, null, tint = colors.accent, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                Text("About the Developer", style = Mihraya.type.titleSmall, color = colors.textPrimary)
+            }
+            Spacer(Modifier.height(14.dp))
+            Text("Developer", style = Mihraya.type.caption, color = colors.textTertiary)
+            Text("Jawad Mohammed", style = Mihraya.type.body, color = colors.textPrimary)
+            Spacer(Modifier.height(12.dp))
+            Text("LinkedIn", style = Mihraya.type.caption, color = colors.textTertiary)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button) {
+                        runCatching { uriHandler.openUri("https://www.linkedin.com/in/jawad-mohammed01") }
+                    }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "linkedin.com/in/jawad-mohammed01",
+                    style = Mihraya.type.body.copy(fontWeight = FontWeight.Medium),
+                    color = colors.accent,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(Icons.AutoMirrored.Rounded.OpenInNew, null, tint = colors.accent, modifier = Modifier.size(16.dp))
             }
         }
 

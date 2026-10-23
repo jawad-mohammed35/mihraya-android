@@ -2,6 +2,7 @@ package com.mihraya.app
 
 import android.content.Intent
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
         val container = appContainer
         splash.setKeepOnScreenCondition { container.settings.state.value == null }
         enableEdgeToEdge()
+        clearSystemBarScrim()
         handleIntent(intent)
 
         setContent {
@@ -52,10 +54,11 @@ class MainActivity : ComponentActivity() {
                         SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
                     },
                 )
+                clearSystemBarScrim()
                 onDispose { }
             }
 
-            MihrayaTheme(mode = current.theme, accent = current.accent) {
+            MihrayaTheme(mode = current.theme, accent = current.accent, pureBlack = current.pureOledBlack) {
                 CompositionLocalProvider(
                     LocalAppContainer provides container,
                     LocalHapticsEnabled provides current.haptics,
@@ -89,6 +92,13 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         appContainer.player.disconnect()
         super.onStop()
+    }
+
+    private fun clearSystemBarScrim() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
     }
 
     companion object {

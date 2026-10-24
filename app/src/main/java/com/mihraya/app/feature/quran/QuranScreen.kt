@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Bookmark
@@ -29,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -61,7 +63,7 @@ import com.mihraya.app.ui.LocalBottomInset
 import com.mihraya.app.ui.mihrayaViewModel
 
 @Composable
-fun QuranScreen(onOpenReader: (surah: Int, ayah: Int) -> Unit) {
+fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> Unit) {
     val vm = mihrayaViewModel { QuranViewModel(it) }
     val query by vm.query.collectAsStateWithLifecycle()
     val tab by vm.tab.collectAsStateWithLifecycle()
@@ -69,8 +71,13 @@ fun QuranScreen(onOpenReader: (surah: Int, ayah: Int) -> Unit) {
     val verseSearch by vm.verseSearch.collectAsStateWithLifecycle()
     val searching = query.isNotBlank()
     val item = Modifier.widthIn(max = 680.dp).fillMaxWidth()
+    val listState = rememberLazyListState()
+    LaunchedEffect(scrollToTop) {
+        if (scrollToTop > 0) listState.animateScrollToItem(0)
+    }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = LocalBottomInset.current + 16.dp),

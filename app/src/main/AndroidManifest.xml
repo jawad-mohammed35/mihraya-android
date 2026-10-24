@@ -32,6 +32,12 @@
         tools:targetApi="34">
 
         <activity
+            android:name=".widget.WidgetConfigActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.Mihraya" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
@@ -75,6 +81,79 @@
         <receiver
             android:name=".notifications.PrayerAlarmReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".widget.PrayerTimetableReceiver"
+            android:exported="true"
+            android:label="@string/widget_prayer_timetable">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_prayer_timetable" />
+        </receiver>
+        <receiver
+            android:name=".widget.NextPrayerReceiver"
+            android:exported="true"
+            android:label="@string/widget_next_prayer">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_next_prayer" />
+        </receiver>
+        <receiver
+            android:name=".widget.QiblaReceiver"
+            android:exported="true"
+            android:label="@string/widget_qibla">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_qibla" />
+        </receiver>
+        <receiver
+            android:name=".widget.VerseReceiver"
+            android:exported="true"
+            android:label="@string/widget_verse">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_verse" />
+        </receiver>
+        <receiver
+            android:name=".widget.LastReadReceiver"
+            android:exported="true"
+            android:label="@string/widget_last_read">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_last_read" />
+        </receiver>
+        <receiver
+            android:name=".widget.BookmarksReceiver"
+            android:exported="true"
+            android:label="@string/widget_bookmarks">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_bookmarks" />
+        </receiver>
+        <receiver
+            android:name=".widget.AudioReceiver"
+            android:exported="true"
+            android:label="@string/widget_audio">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_audio" />
+        </receiver>
+        <receiver
+            android:name=".widget.TasbihReceiver"
+            android:exported="true"
+            android:label="@string/widget_tasbih">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_tasbih" />
+        </receiver>
 
         <receiver
             android:name=".notifications.RescheduleReceiver"

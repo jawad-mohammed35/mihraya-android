@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -59,6 +60,7 @@ import com.mihraya.app.feature.home.HomeScreen
 import com.mihraya.app.feature.listen.ListenScreen
 import com.mihraya.app.feature.listen.PlayerScreen
 import com.mihraya.app.feature.more.MoreScreen
+import com.mihraya.app.feature.more.TourScreen
 import com.mihraya.app.feature.prayer.TimetableScreen
 import com.mihraya.app.feature.qibla.QiblaScreen
 import com.mihraya.app.feature.quran.QuranScreen
@@ -73,6 +75,7 @@ import com.mihraya.app.feature.settings.ReadingSettingsScreen
 import com.mihraya.app.feature.settings.TranslationsScreen
 import com.mihraya.app.feature.tasbih.TasbihScreen
 import com.mihraya.app.feature.welcome.WelcomeScreen
+import com.mihraya.app.widget.Destinations
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.flow.StateFlow
@@ -80,7 +83,7 @@ import kotlinx.coroutines.flow.StateFlow
 val LocalAppContainer = staticCompositionLocalOf<AppContainer> { error("AppContainer not provided") }
 
 @Composable
-fun MihrayaRoot(settings: AppSettings, openPlayerRequests: StateFlow<Int>) {
+fun MihrayaRoot(settings: AppSettings, launches: StateFlow<LaunchRequest>) {
     val container = LocalAppContainer.current
     if (!settings.onboardingDone) {
         WelcomeScreen(onDone = { container.settings.edit { it.copy(onboardingDone = true) } })
@@ -91,11 +94,22 @@ fun MihrayaRoot(settings: AppSettings, openPlayerRequests: StateFlow<Int>) {
     val navController = rememberNavController()
     val hazeState = remember { HazeState() }
     var playerExpanded by rememberSaveable { mutableStateOf(false) }
+    var quranScroll by remember { mutableIntStateOf(0) }
+    var listenScroll by remember { mutableIntStateOf(0) }
     val playback by container.player.state.collectAsStateWithLifecycle()
-    val playerRequests by openPlayerRequests.collectAsStateWithLifecycle()
+    val launch by launches.collectAsStateWithLifecycle()
 
-    LaunchedEffect(playerRequests) {
-        if (playerRequests > 0) playerExpanded = true
+    LaunchedEffect(launch.nonce) {
+        if (launch.nonce == 0) return@LaunchedEffect
+        if (launch.player) playerExpanded = true
+        when (launch.dest) {
+            Destinations.TIMETABLE -> navController.navigate(TimetableRoute) { launchSingleTop = true }
+            Destinations.QIBLA -> navController.navigate(QiblaRoute) { launchSingleTop = true }
+            Destinations.READER -> navController.navigate(ReaderRoute(launch.surah, launch.ayah)) { launchSingleTop = true }
+            Destinations.LISTEN -> navController.navigateTopLevel(TopLevel.Listen)
+            Destinations.TASBIH -> navController.navigateTopLevel(TopLevel.Tasbih)
+            Destinations.PLAYER -> playerExpanded = true
+        }
     }
 
     val entry by navController.currentBackStackEntryAsState()
@@ -130,6 +144,8 @@ fun MihrayaRoot(settings: AppSettings, openPlayerRequests: StateFlow<Int>) {
             MihrayaNavHost(
                 navController = navController,
                 openPlayer = { playerExpanded = true },
+                quranScroll = quranScroll,
+                listenScroll = listenScroll,
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(hazeState),
@@ -173,7 +189,15 @@ fun MihrayaRoot(settings: AppSettings, openPlayerRequests: StateFlow<Int>) {
             ) {
                 BottomBar(
                     current = currentTop,
-                    onSelect = { navController.navigateTopLevel(it) },
+                    onSelect = { item ->
+                        if (item == currentTop && item == TopLevel.Quran) {
+                            quranScroll += 1
+                        } else if (item == currentTop && item == TopLevel.Listen) {
+                            listenScroll += 1
+                        } else {
+                            navController.navigateTopLevel(item)
+                        }
+                    },
                     hazeState = hazeState,
                 )
             }
@@ -209,6 +233,8 @@ private fun NavHostController.navigateTopLevel(item: TopLevel) {
 private fun MihrayaNavHost(
     navController: NavHostController,
     openPlayer: () -> Unit,
+    quranScroll: Int,
+    listenScroll: Int,
     modifier: Modifier = Modifier,
 ) {
     val back: () -> Unit = { navController.popBackStack() }
@@ -234,10 +260,17 @@ private fun MihrayaNavHost(
             )
         }
         composable<QuranRoute> {
-            QuranScreen(onOpenReader = { surah, ayah -> navController.navigate(ReaderRoute(surah, ayah)) })
+            QuranScreen(
+                scrollToTop = quranScroll,
+                onOpenReader = { surah, ayah -> navController.navigate(ReaderRoute(surah, ayah)) },
+            )
         }
         composable<ListenRoute> {
-            ListenScreen(onOpenPlayer = openPlayer, onOpenDownloads = { navController.navigate(DownloadsRoute) })
+            ListenScreen(
+                scrollToTop = listenScroll,
+                onOpenPlayer = openPlayer,
+                onOpenDownloads = { navController.navigate(DownloadsRoute) },
+            )
         }
         composable<TasbihRoute> { TasbihScreen() }
         composable<MoreRoute> {
@@ -271,5 +304,6 @@ private fun MihrayaNavHost(
             DownloadsScreen(onBack = back, onManageTranslations = { navController.navigate(TranslationsRoute) })
         }
         composable<AboutRoute> { AboutScreen(onBack = back) }
+        composable<TourRoute> { TourScreen(onDone = back) }
     }
 }

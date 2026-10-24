@@ -21,6 +21,15 @@ import kotlinx.serialization.Serializable
 @Serializable data object TranslationsRoute
 @Serializable data object DownloadsRoute
 @Serializable data object AboutRoute
+@Serializable data object TourRoute
+
+data class LaunchRequest(
+    val nonce: Int = 0,
+    val player: Boolean = false,
+    val dest: String? = null,
+    val surah: Int = 1,
+    val ayah: Int = 1,
+)
 
 enum class TopLevel(val label: String, val icon: ImageVector, val route: Any) {
     Home("Home", MihrayaIcons.Home, HomeRoute),

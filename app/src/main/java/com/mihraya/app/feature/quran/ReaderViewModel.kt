@@ -42,7 +42,12 @@ class ReaderViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, container.settings.state.value?.reader ?: ReaderPreferences())
 
-    val content: StateFlow<ReaderContent?> = combine(surahNumber, prefs, container.quran.installedTranslations) { surah, prefs, _ ->
+    val content: StateFlow<ReaderContent?> = combine(
+        surahNumber,
+        prefs,
+        container.quran.installedTranslations,
+        container.quran.tajweedStatus,
+    ) { surah, prefs, _, _ ->
         surah to prefs
     }.mapLatest { (surah, prefs) ->
         ReaderContent(

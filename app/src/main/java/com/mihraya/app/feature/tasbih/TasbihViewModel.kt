@@ -28,6 +28,7 @@ class TasbihViewModel(private val container: AppContainer) : ViewModel() {
     private val _state = MutableStateFlow(library.state.value.tasbih)
     val state: StateFlow<TasbihState> = _state.asStateFlow()
     private var touched = false
+    private var lastSaved = library.state.value.tasbih
 
     val presets: StateFlow<List<DhikrPreset>> = library.flow
         .map { it.allDhikr() }
@@ -43,7 +44,19 @@ class TasbihViewModel(private val container: AppContainer) : ViewModel() {
             if (!touched) _state.value = stored
         }
         viewModelScope.launch {
-            _state.drop(1).debounce(600).collect { library.saveTasbih(it) }
+            library.flow.map { it.tasbih }.collect { stored ->
+                if (stored != _state.value && stored != lastSaved) {
+                    touched = false
+                    _state.value = stored
+                    lastSaved = stored
+                }
+            }
+        }
+        viewModelScope.launch {
+            _state.drop(1).debounce(600).collect {
+                lastSaved = it
+                library.saveTasbih(it)
+            }
         }
     }
 

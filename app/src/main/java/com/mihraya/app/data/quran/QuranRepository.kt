@@ -30,6 +30,8 @@ data class Verse(
     val arabic: String,
     val transliteration: String?,
     val translations: List<VerseTranslation>,
+    /** Quran.com Uthmani tajweed markup for this verse, when it has been saved on the device. */
+    val tajweed: String? = null,
 ) {
     val surah: Int get() = ref.surah
     val ayah: Int get() = ref.ayah
@@ -58,6 +60,21 @@ class QuranRepository(
 
     private val _downloads = MutableStateFlow<Map<Int, TranslationDownload>>(emptyMap())
     val downloads: StateFlow<Map<Int, TranslationDownload>> = _downloads.asStateFlow()
+
+    private val tajweedFile = File(dir, "tajweed.txt")
+    private val _tajweed = MutableStateFlow(if (tajweedFileReady()) TajweedStatus.Ready else TajweedStatus.Missing)
+    val tajweedStatus: StateFlow<TajweedStatus> = _tajweed.asStateFlow()
+
+    fun tajweedReady(): Boolean = _tajweed.value == TajweedStatus.Ready
+
+    fun downloadTajweed() {
+        if (_tajweed.value == TajweedStatus.Downloading || tajweedReady()) return
+        _tajweed.value = TajweedStatus.Downloading
+        scope.launch {
+            val result = runCatching { fetchTajweed() }
+            _tajweed.value = if (result.isSuccess) TajweedStatus.Ready else TajweedStatus.Failed
+        }
+    }
 
     private fun scanInstalled(): Set<Int> = buildSet {
         TranslationCatalog.all.filter { it.bundled }.forEach { add(it.id) }
@@ -119,6 +136,11 @@ class QuranRepository(
         } else {
             emptyList()
         }
+        val colored = if (prefs.tajweed && prefs.script == QuranScript.Uthmani && tajweedReady()) {
+            runCatching { tajweedEdition() }.getOrNull()
+        } else {
+            null
+        }
         val first = QuranMeta.firstVerseId(surah)
         return (0 until QuranMeta.surah(surah).verseCount).map { offset ->
             val index = first - 1 + offset
@@ -128,8 +150,54 @@ class QuranRepository(
                 arabic = arabic[index],
                 transliteration = transliteration?.get(index),
                 translations = translations.map { (info, text) -> VerseTranslation(info, text[index]) },
+                tajweed = colored?.getOrNull(index),
             )
         }
+    }
+
+    private suspend fun tajweedEdition(): Array<String> {
+        editions.get(TAJWEED)?.let { return it }
+        return loadLock.withLock {
+            editions.get(TAJWEED) ?: withContext(Dispatchers.IO) {
+                tajweedFile.readLines(Charsets.UTF_8).toTypedArray()
+            }.also { editions.put(TAJWEED, it) }
+        }
+    }
+
+    private fun tajweedFileReady(): Boolean =
+        tajweedFile.isFile && runCatching { tajweedFile.useLines { it.count() } }.getOrDefault(0) == QuranMeta.VERSE_COUNT
+
+    private suspend fun fetchTajweed() = withContext(Dispatchers.IO) {
+        val lines = ArrayList<String>(QuranMeta.VERSE_COUNT)
+        for (chapter in 1..114) {
+            var page = 1
+            while (true) {
+                val request = Request.Builder()
+                    .url(
+                        "https://api.quran.com/api/v4/quran/verses/uthmani_tajweed" +
+                            "?chapter_number=$chapter&per_page=300&page=$page",
+                    )
+                    .header("Accept", "application/json")
+                    .build()
+                val body = http.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("Server responded with ${response.code}")
+                    response.body?.string() ?: throw IOException("Empty response")
+                }
+                val payload = json.decodeFromString(TajweedPage.serializer(), body)
+                lines += payload.verses.map { it.text.orEmpty().trim() }
+                val pages = payload.pagination?.totalPages ?: 1
+                if (page >= pages) break
+                page++
+            }
+        }
+        if (lines.size != QuranMeta.VERSE_COUNT) throw IOException("Incomplete tajweed text")
+        val part = File(dir, "tajweed.txt.part")
+        part.writeText(lines.joinToString("\n"), Charsets.UTF_8)
+        if (!part.renameTo(tajweedFile)) {
+            tajweedFile.delete()
+            if (!part.renameTo(tajweedFile)) throw IOException("Could not save tajweed text")
+        }
+        editions.remove(TAJWEED)
     }
 
     suspend fun bismillah(script: QuranScript): String = edition(scriptEdition(script))[0]
@@ -228,9 +296,28 @@ class QuranRepository(
     @Serializable
     private data class TranslationItem(val text: String = "")
 
+    @Serializable
+    private data class TajweedPage(
+        val verses: List<TajweedVerse> = emptyList(),
+        val pagination: TajweedPages? = null,
+    )
+
+    @Serializable
+    private data class TajweedVerse(
+        @kotlinx.serialization.SerialName("text_uthmani_tajweed") val text: String? = null,
+    )
+
+    @Serializable
+    private data class TajweedPages(
+        @kotlinx.serialization.SerialName("total_pages") val totalPages: Int = 1,
+    )
+
+    enum class TajweedStatus { Missing, Downloading, Ready, Failed }
+
     private companion object {
         const val UTHMANI = "uthmani"
         const val INDOPAK = "indopak"
+        const val TAJWEED = "tajweed"
         val supTag = Regex("<sup[^>]*>.*?</sup>", RegexOption.DOT_MATCHES_ALL)
         val anyTag = Regex("<[^>]+>")
         val whitespace = Regex("\\s+")

@@ -19,9 +19,13 @@ import com.mihraya.app.playback.PlayerConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import com.mihraya.app.widget.WidgetRefresh
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -89,6 +93,11 @@ class AppContainer(private val app: Application) {
                 .map { it.reader.translations }
                 .distinctUntilChanged()
                 .collect { quran.retainSelectedAssets(it) }
+        }
+        appScope.launch {
+            merge(settings.flow.drop(1), library.flow.drop(1))
+                .debounce(1_500)
+                .collect { WidgetRefresh.refresh(app) }
         }
         appScope.launch {
             val fajr = settings.current().alerts.fajrSound

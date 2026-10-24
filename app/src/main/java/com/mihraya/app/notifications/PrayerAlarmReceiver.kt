@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.mihraya.app.appContainer
+import com.mihraya.app.widget.WidgetRefresh
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
@@ -24,6 +25,7 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                     PrayerNotifier.deliver(context, settings, event)
                 }
                 container.alarms.reschedule(settings)
+                WidgetRefresh.refresh(context)
             } finally {
                 pending.finish()
             }
@@ -52,6 +54,7 @@ class RescheduleReceiver : BroadcastReceiver() {
                     settings = container.settings.update { it.copy(location = location.copy(timeZone = systemZone)) }
                 }
                 container.alarms.reschedule(settings)
+                WidgetRefresh.refresh(context)
             } finally {
                 pending.finish()
             }

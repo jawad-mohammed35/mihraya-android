@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Mihraya</string>
+    <string name="widget_prayer_timetable">Prayer timetable</string>
+    <string name="widget_next_prayer">Next prayer</string>
+    <string name="widget_qibla">Qibla</string>
+    <string name="widget_verse">Verse of the day</string>
+    <string name="widget_last_read">Continue reading</string>
+    <string name="widget_bookmarks">Quran bookmarks</string>
+    <string name="widget_audio">Resume recitation</string>
+    <string name="widget_tasbih">Tasbih</string>
 </resources>

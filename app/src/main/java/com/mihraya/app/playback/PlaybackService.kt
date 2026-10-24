@@ -16,6 +16,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.mihraya.app.MainActivity
 import com.mihraya.app.appContainer
+import com.mihraya.app.widget.WidgetRefresh
 import com.mihraya.app.data.audio.Reciters
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +56,13 @@ class PlaybackService : MediaSessionService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
+        player.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
+                WidgetRefresh.refresh(this@PlaybackService)
+            }
+        })
+
         session = MediaSession.Builder(this, player)
             .setSessionActivity(openApp)
             .setCallback(SessionCallback())
@@ -62,6 +70,32 @@ class PlaybackService : MediaSessionService() {
 
         scope.launch {
             appContainer.adhanPlaying.collect { sounding -> if (sounding) player.pause() }
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_TOGGLE) togglePlayback()
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun togglePlayback() {
+        val player = session?.player ?: return
+        if (player.mediaItemCount == 0) {
+            scope.launch {
+                val last = appContainer.library.current().lastPlayed ?: return@launch
+                val reciter = Reciters.byId(last.reciterId)
+                val items = withContext(Dispatchers.IO) {
+                    MediaItems.playlist(this@PlaybackService, reciter, appContainer.audioDownloads)
+                }
+                player.setMediaItems(items, (last.surah - 1).coerceAtLeast(0), last.positionMs)
+                player.prepare()
+                player.play()
+            }
+        } else if (player.isPlaying) {
+            player.pause()
+        } else {
+            player.prepare()
+            player.play()
         }
     }
 
@@ -77,6 +111,7 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        isPlaying = false
         scope.cancel()
         session?.run {
             player.release()
@@ -122,5 +157,13 @@ class PlaybackService : MediaSessionService() {
             }
             return future
         }
+    }
+
+    companion object {
+        const val ACTION_TOGGLE = "com.mihraya.app.playback.TOGGLE"
+
+        @Volatile
+        var isPlaying: Boolean = false
+            private set
     }
 }

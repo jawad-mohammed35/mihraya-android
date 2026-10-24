@@ -7,6 +7,10 @@
 }
 -keep,includedescriptorclasses class com.mihraya.app.**$$serializer { *; }
 
+-keepclassmembers class * extends androidx.glance.appwidget.action.ActionCallback {
+    <init>();
+}
+
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**

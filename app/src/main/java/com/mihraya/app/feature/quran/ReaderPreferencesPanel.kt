@@ -41,6 +41,7 @@ import com.mihraya.app.core.designsystem.components.SegmentedControl
 import com.mihraya.app.core.designsystem.components.glass
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.data.quran.QuranRepository
 import com.mihraya.app.data.quran.TranslationCatalog
 import com.mihraya.app.data.settings.ArabicFont
 import com.mihraya.app.data.settings.QuranScript
@@ -59,7 +60,9 @@ fun ReaderPreferencesPanel(
     modifier: Modifier = Modifier,
 ) {
     val colors = Mihraya.colors
-    val installed by LocalAppContainer.current.quran.installedTranslations.collectAsStateWithLifecycle()
+    val container = LocalAppContainer.current
+    val installed by container.quran.installedTranslations.collectAsStateWithLifecycle()
+    val tajweed by container.quran.tajweedStatus.collectAsStateWithLifecycle()
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(22.dp)) {
         Column {
@@ -122,6 +125,25 @@ fun ReaderPreferencesPanel(
 
         Column(Modifier.glass(RoundedCornerShape(22.dp), colors)) {
             ToggleRow("Show translation", prefs.showTranslation) { v -> onChange { it.copy(showTranslation = v) } }
+            HairlineDivider(Modifier.padding(horizontal = 16.dp))
+            ToggleRow("Tajweed colors", prefs.tajweed) { enabled ->
+                onChange { it.copy(tajweed = enabled) }
+                if (enabled) container.quran.downloadTajweed()
+            }
+            if (prefs.tajweed) {
+                Text(
+                    when {
+                        prefs.script == QuranScript.IndoPak ->
+                            "Tajweed colors follow the Uthmani script. IndoPak text stays uncolored so the marks are not guessed."
+                        tajweed == QuranRepository.TajweedStatus.Downloading -> "Downloading the Quran.com tajweed text…"
+                        tajweed == QuranRepository.TajweedStatus.Failed -> "Couldn't download Tajweed colors. Turn the switch off and on to try again."
+                        else -> "Colors follow the Quran.com Uthmani tajweed text."
+                    },
+                    style = Mihraya.type.caption,
+                    color = if (tajweed == QuranRepository.TajweedStatus.Failed) colors.danger else colors.textTertiary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
             HairlineDivider(Modifier.padding(horizontal = 16.dp))
             ToggleRow("Show transliteration", prefs.showTransliteration) { v -> onChange { it.copy(showTransliteration = v) } }
             HairlineDivider(Modifier.padding(horizontal = 16.dp))

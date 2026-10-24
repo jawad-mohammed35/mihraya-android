@@ -98,6 +98,7 @@ import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.util.rememberHaptics
 import com.mihraya.app.data.quran.QuranMeta
+import com.mihraya.app.data.quran.tajweedAnnotated
 import com.mihraya.app.data.quran.Surah
 import com.mihraya.app.data.quran.Verse
 import com.mihraya.app.data.quran.VerseRef
@@ -519,12 +520,26 @@ private fun VerseItem(
 @Composable
 internal fun VerseBody(verse: Verse, prefs: ReaderPreferences, includeTranslations: Boolean) {
     val colors = Mihraya.colors
-    Text(
-        verse.arabic + " " + ayahMarker(verse.ayah, prefs.script),
-        style = quranStyle(prefs),
-        color = colors.textPrimary,
-        modifier = Modifier.fillMaxWidth(),
-    )
+    val marker = ayahMarker(verse.ayah, prefs.script)
+    val markup = verse.tajweed
+    if (markup != null) {
+        val dark = colors.isDark
+        val colored = remember(markup, dark, colors.textPrimary, marker) {
+            buildAnnotatedString {
+                append(tajweedAnnotated(markup, colors.textPrimary, dark))
+                append(" ")
+                append(marker)
+            }
+        }
+        Text(colored, style = quranStyle(prefs), modifier = Modifier.fillMaxWidth())
+    } else {
+        Text(
+            verse.arabic + " " + marker,
+            style = quranStyle(prefs),
+            color = colors.textPrimary,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
     verse.transliteration?.let {
         Spacer(Modifier.height(10.dp))
         Text(
@@ -569,11 +584,21 @@ private fun ContinuousParagraph(
     onSelect: (Verse) -> Unit,
 ) {
     val colors = Mihraya.colors
-    val text = remember(verses, prefs.script, selected, colors.accentSoft, colors.accent) {
+    val dark = colors.isDark
+    val text = remember(verses, prefs.script, selected, colors.accentSoft, colors.accent, colors.textPrimary, dark) {
         buildAnnotatedString {
             verses.forEach { verse ->
                 withLink(LinkAnnotation.Clickable(tag = verse.ref.key) { onSelect(verse) }) {
-                    if (verse.id == selected) {
+                    val markup = verse.tajweed
+                    if (markup != null) {
+                        if (verse.id == selected) {
+                            withStyle(SpanStyle(background = colors.accentSoft)) {
+                                append(tajweedAnnotated(markup, colors.textPrimary, dark))
+                            }
+                        } else {
+                            append(tajweedAnnotated(markup, colors.textPrimary, dark))
+                        }
+                    } else if (verse.id == selected) {
                         withStyle(SpanStyle(background = colors.accentSoft)) { append(verse.arabic) }
                     } else {
                         append(verse.arabic)

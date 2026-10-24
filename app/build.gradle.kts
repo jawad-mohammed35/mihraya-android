@@ -21,8 +21,8 @@ android {
         applicationId = "com.mihraya.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.1.0"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -107,6 +107,8 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.adhan)
     implementation(libs.haze)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
 
     testImplementation(libs.junit)
 }

@@ -23,8 +23,8 @@ enum class ThemeMode(val label: String) {
 
 @Serializable
 enum class AccentColor(val label: String) {
-    Emerald("Emerald"),
     Champagne("Champagne"),
+    Emerald("Emerald"),
     Silver("Silver"),
     Lapis("Lapis"),
 }
@@ -152,6 +152,8 @@ data class ReaderPreferences(
     val translations: List<Int> = listOf(20),
     val showTranslation: Boolean = true,
     val showTransliteration: Boolean = false,
+    /** Uthmani tajweed colors from the Quran.com annotated text. IndoPak stays uncolored. */
+    val tajweed: Boolean = false,
     val layout: ReaderLayout = ReaderLayout.VerseByVerse,
     val keepScreenOn: Boolean = true,
 )

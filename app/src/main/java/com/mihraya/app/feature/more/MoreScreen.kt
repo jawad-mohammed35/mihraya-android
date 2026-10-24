@@ -16,6 +16,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.DownloadForOffline
+import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.NotificationsActive
@@ -68,6 +69,7 @@ import com.mihraya.app.ui.NotificationSettingsRoute
 import com.mihraya.app.ui.PrayerSettingsRoute
 import com.mihraya.app.ui.ReadingSettingsRoute
 import com.mihraya.app.ui.TimetableRoute
+import com.mihraya.app.ui.TourRoute
 import com.mihraya.app.ui.TranslationsRoute
 
 @Composable
@@ -150,6 +152,13 @@ fun MoreScreen(onNavigate: (Any) -> Unit) {
 
         item {
             SettingsGroup(null, item) {
+                SettingsValueRow(
+                    "Explore Mihraya",
+                    "A short look at the main sections",
+                    { onNavigate(TourRoute) },
+                    icon = Icons.Rounded.Explore,
+                )
+                SettingsDivider()
                 SettingsValueRow("About, sources & privacy", "", { onNavigate(AboutRoute) }, icon = Icons.Rounded.Info)
             }
         }

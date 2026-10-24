@@ -34,6 +34,8 @@ class LibraryRepository(
 
     fun edit(transform: (UserLibrary) -> UserLibrary): Job = scope.launch { store.updateData(transform) }
 
+    suspend fun editNow(transform: (UserLibrary) -> UserLibrary): UserLibrary = store.updateData(transform)
+
     fun toggleBookmark(surah: Int, ayah: Int) = edit { lib ->
         val exists = lib.bookmarks.any { it.surah == surah && it.ayah == ayah }
         lib.copy(

@@ -426,6 +426,7 @@ private val numberKeyboard = KeyboardOptions(keyboardType = KeyboardType.Number)
 private fun HistorySheet(sessions: List<TasbihSession>, onClear: () -> Unit, onDismiss: () -> Unit) {
     val colors = Mihraya.colors
     val timeFormat = remember { DateFormat.getTimeInstance(DateFormat.SHORT) }
+    var confirmClear by remember { mutableStateOf(false) }
     MihrayaSheet(onDismiss = onDismiss, title = "History") {
         if (sessions.isEmpty()) {
             EmptyState(MihrayaIcons.Tasbih, "No sessions yet", "Completed rounds and resets are recorded here.")
@@ -488,8 +489,21 @@ private fun HistorySheet(sessions: List<TasbihSession>, onClear: () -> Unit, onD
                 .padding(24.dp),
             horizontalArrangement = Arrangement.End,
         ) {
-            SecondaryButton("Clear history", onClick = onClear, tint = colors.danger)
+            SecondaryButton("Clear history", onClick = { confirmClear = true }, tint = colors.danger)
         }
+    }
+    if (confirmClear) {
+        MihrayaDialog(
+            title = "Clear Tasbih history?",
+            message = "Are you sure you want to clear your Tasbih history? This action cannot be undone.",
+            onDismiss = { confirmClear = false },
+            confirmText = "Clear History",
+            destructive = true,
+            onConfirm = {
+                confirmClear = false
+                onClear()
+            },
+        )
     }
 }
 

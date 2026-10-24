@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -30,6 +31,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -70,7 +72,7 @@ import com.mihraya.app.ui.PlayPauseButton
 import com.mihraya.app.ui.mihrayaViewModel
 
 @Composable
-fun ListenScreen(onOpenPlayer: () -> Unit, onOpenDownloads: () -> Unit) {
+fun ListenScreen(scrollToTop: Int = 0, onOpenPlayer: () -> Unit, onOpenDownloads: () -> Unit) {
     val vm = mihrayaViewModel { ListenViewModel(it) }
     val reciter by vm.reciter.collectAsStateWithLifecycle()
     val filter by vm.filter.collectAsStateWithLifecycle()
@@ -86,8 +88,13 @@ fun ListenScreen(onOpenPlayer: () -> Unit, onOpenDownloads: () -> Unit) {
 
     val reciterDownloads = downloaded[reciter.id].orEmpty()
     val surahs = if (filter == 1) QuranMeta.surahs.filter { it.number in reciterDownloads } else QuranMeta.surahs
+    val listState = rememberLazyListState()
+    LaunchedEffect(scrollToTop) {
+        if (scrollToTop > 0) listState.animateScrollToItem(0)
+    }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(bottom = LocalBottomInset.current + 16.dp),

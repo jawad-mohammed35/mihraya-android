@@ -18,14 +18,16 @@ import com.mihraya.app.core.designsystem.theme.LocalHapticsEnabled
 import com.mihraya.app.core.designsystem.theme.LocalUse24Hour
 import com.mihraya.app.core.designsystem.theme.MihrayaTheme
 import com.mihraya.app.core.designsystem.theme.isDarkTheme
+import com.mihraya.app.ui.LaunchRequest
 import com.mihraya.app.ui.LocalAppContainer
 import com.mihraya.app.ui.MihrayaRoot
+import com.mihraya.app.widget.Destinations
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    private val openPlayerRequests = MutableStateFlow(0)
+    private val launches = MutableStateFlow(LaunchRequest())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
@@ -64,7 +66,7 @@ class MainActivity : ComponentActivity() {
                     LocalHapticsEnabled provides current.haptics,
                     LocalUse24Hour provides current.use24Hour,
                 ) {
-                    MihrayaRoot(settings = current, openPlayerRequests = openPlayerRequests)
+                    MihrayaRoot(settings = current, launches = launches)
                 }
             }
         }
@@ -74,14 +76,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         handleIntent(intent)
     }
 
     private fun handleIntent(intent: Intent?) {
-        if (intent?.getBooleanExtra(EXTRA_OPEN_PLAYER, false) == true) {
-            intent.removeExtra(EXTRA_OPEN_PLAYER)
-            openPlayerRequests.value += 1
-        }
+        val player = intent?.getBooleanExtra(EXTRA_OPEN_PLAYER, false) == true
+        val dest = intent?.getStringExtra(Destinations.EXTRA)
+        if (!player && dest == null) return
+        if (player) intent?.removeExtra(EXTRA_OPEN_PLAYER)
+        val current = launches.value
+        launches.value = LaunchRequest(
+            nonce = current.nonce + 1,
+            player = player || dest == Destinations.PLAYER,
+            dest = dest,
+            surah = intent?.getIntExtra(Destinations.SURAH, 1) ?: 1,
+            ayah = intent?.getIntExtra(Destinations.AYAH, 1) ?: 1,
+        )
     }
 
     override fun onStart() {

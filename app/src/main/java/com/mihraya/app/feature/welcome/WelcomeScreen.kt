@@ -30,7 +30,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -73,7 +74,9 @@ import com.mihraya.app.core.designsystem.components.NoticeCard
 import com.mihraya.app.core.designsystem.components.PrimaryButton
 import com.mihraya.app.core.designsystem.components.StarShape
 import com.mihraya.app.core.designsystem.components.glass
+import com.mihraya.app.core.designsystem.components.topChrome
 import com.mihraya.app.core.designsystem.icons.MihrayaIcons
+import com.mihraya.app.data.audio.Reciters
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.feature.more.MAX_NAME_LENGTH
 import com.mihraya.app.feature.settings.CitySearch
@@ -110,7 +113,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
         Column(
             Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
+                .windowInsetsPadding(WindowInsets.topChrome)
                 .navigationBarsPadding()
                 .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -190,7 +193,7 @@ private fun ColumnScope.IntroStep(onNext: () -> Unit) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Feature(MihrayaIcons.Crescent, "Prayer times & Adhan", "Accurate for your location, with gentle alerts")
         Feature(MihrayaIcons.Quran, "The Holy Quran", "Uthmani and IndoPak scripts, translations, bookmarks")
-        Feature(MihrayaIcons.Listen, "Recitations", "Seven renowned reciters, online or offline")
+        Feature(MihrayaIcons.Listen, "Recitations", "${Reciters.all.size} renowned reciters, online or offline")
         Feature(MihrayaIcons.Qibla, "Qibla & Tasbīḥ", "A precise compass and a quiet counter")
     }
     Spacer(Modifier.height(44.dp))

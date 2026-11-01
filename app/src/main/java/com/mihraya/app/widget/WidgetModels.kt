@@ -61,9 +61,16 @@ object Destinations {
     const val EXTRA = "mihraya_dest"
     const val SURAH = "mihraya_surah"
     const val AYAH = "mihraya_ayah"
+
+    /** Set by the Tasbih widget, whose count the app should continue rather than start afresh. */
+    const val KEEP_TASBIH = "mihraya_keep_tasbih"
+
+    /** Set by launcher shortcuts, whose tasks Android would otherwise close on Back instead of backgrounding. */
+    const val FROM_SHORTCUT = "mihraya_from_shortcut"
     const val TIMETABLE = "timetable"
     const val QIBLA = "qibla"
     const val READER = "reader"
+    const val QURAN = "quran"
     const val LISTEN = "listen"
     const val TASBIH = "tasbih"
     const val PLAYER = "player"

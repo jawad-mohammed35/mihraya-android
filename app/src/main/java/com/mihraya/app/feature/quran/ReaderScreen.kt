@@ -23,10 +23,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.LazyListState
@@ -88,6 +87,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mihraya.app.core.designsystem.components.CircleIconButton
 import com.mihraya.app.core.designsystem.components.HairlineDivider
+import com.mihraya.app.core.designsystem.components.sideChrome
+import com.mihraya.app.core.designsystem.components.topChrome
 import com.mihraya.app.core.designsystem.components.StarShape
 import com.mihraya.app.core.designsystem.components.MihrayaDialog
 import com.mihraya.app.core.designsystem.components.MihrayaSheet
@@ -184,7 +185,7 @@ fun ReaderScreen(
         }
     }
 
-    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val topInset = WindowInsets.topChrome.asPaddingValues().calculateTopPadding()
 
     Box(Modifier.fillMaxSize().background(colors.background)) {
         if (current == null) {
@@ -200,6 +201,7 @@ fun ReaderScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .hazeSource(haze)
+                    .windowInsetsPadding(WindowInsets.sideChrome)
                     .nestedScroll(hideOnScroll),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 contentPadding = PaddingValues(top = topInset + 84.dp, bottom = LocalBottomInset.current + 32.dp),
@@ -352,7 +354,8 @@ private fun ReaderTopBar(
     val colors = Mihraya.colors
     Box(
         Modifier
-            .statusBarsPadding()
+            .windowInsetsPadding(WindowInsets.topChrome)
+            .windowInsetsPadding(WindowInsets.sideChrome)
             .padding(horizontal = 14.dp, vertical = 8.dp)
             .widthIn(max = 680.dp)
             .fillMaxWidth(),

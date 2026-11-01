@@ -30,6 +30,11 @@ class LibraryRepository(
     val flow: Flow<UserLibrary> = store.data
     val state: StateFlow<UserLibrary> = store.data.stateIn(scope, SharingStarted.Eagerly, UserLibrary())
 
+    private var freshTasbih: Job? = null
+
+    val freshTasbihPending: Boolean
+        get() = freshTasbih?.isActive == true
+
     suspend fun current(): UserLibrary = store.data.first()
 
     fun edit(transform: (UserLibrary) -> UserLibrary): Job = scope.launch { store.updateData(transform) }
@@ -62,6 +67,15 @@ class LibraryRepository(
 
     fun saveTasbih(state: TasbihState) = edit { it.copy(tasbih = state) }
 
+    /** Called once per app launch. See [withFreshTasbih]. */
+    fun startFreshTasbih() {
+        freshTasbih = edit { it.withFreshTasbih() }
+    }
+
+    suspend fun awaitFreshTasbih() {
+        freshTasbih?.join()
+    }
+
     fun addSession(session: TasbihSession) = edit { lib ->
         lib.copy(sessions = (listOf(session) + lib.sessions).take(MAX_SESSIONS))
     }
@@ -80,10 +94,23 @@ class LibraryRepository(
         val tasbih = if (lib.tasbih.presetId == id) TasbihState() else lib.tasbih
         lib.copy(customDhikr = lib.customDhikr.filterNot { it.id == id }, tasbih = tasbih)
     }
+}
 
-    private companion object {
-        const val MAX_SESSIONS = 400
-    }
+private const val MAX_SESSIONS = 400
+
+/**
+ * The counter a new app session starts with: the first dhikr at 33, counted from zero. Saved sessions are kept.
+ * An unfinished count goes into history, as Reset does, dated when that round began.
+ */
+fun UserLibrary.withFreshTasbih(now: Long = System.currentTimeMillis()): UserLibrary {
+    val state = tasbih
+    if (state.count !in 1 until state.target) return copy(tasbih = TasbihState())
+    val began = state.startedAt.takeIf { it > 0L } ?: now
+    val unfinished = TasbihSession(dhikr(state.presetId).transliteration, state.count, state.target, began, began)
+    return copy(
+        tasbih = TasbihState(),
+        sessions = (sessions + unfinished).sortedByDescending { it.endedAt }.take(MAX_SESSIONS),
+    )
 }
 
 fun UserLibrary.allDhikr(): List<DhikrPreset> = DhikrLibrary.builtIn + customDhikr

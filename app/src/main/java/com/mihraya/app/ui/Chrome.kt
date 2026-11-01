@@ -1,6 +1,7 @@
 package com.mihraya.app.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -125,7 +126,14 @@ private fun NavItem(item: TopLevel, selected: Boolean, onClick: () -> Unit, modi
                     .clip(CircleShape)
                     .background(colors.accentSoft),
             )
-            Icon(item.icon, contentDescription = item.label, tint = tint, modifier = Modifier.size(22.dp))
+            Crossfade(selected, animationSpec = tween(220), label = "navIcon") { filled ->
+                Icon(
+                    if (filled) item.selectedIcon else item.icon,
+                    contentDescription = item.label,
+                    tint = tint,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
         }
         Spacer(Modifier.height(3.dp))
         Text(

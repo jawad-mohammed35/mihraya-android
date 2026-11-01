@@ -163,7 +163,7 @@ data class AppSettings(
     val onboardingDone: Boolean = false,
     val userName: String = "",
     val theme: ThemeMode = ThemeMode.Dark,
-    /** True black backgrounds. Applies only while [theme] is [ThemeMode.Dark]. */
+    /** True black backgrounds whenever the dark palette is showing: Black, or System while the device is dark. */
     val pureOledBlack: Boolean = false,
     val accent: AccentColor = AccentColor.Champagne,
     val use24Hour: Boolean = false,

@@ -17,14 +17,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -70,11 +71,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
 
 @Composable
@@ -222,13 +225,17 @@ fun Pill(
     }
 }
 
-/** Pass a negative [selectedIndex] when no option applies, e.g. for mixed values. */
+/**
+ * Pass a negative [selectedIndex] when no option applies, e.g. for mixed values.
+ * [indicatorPosition] lets the indicator follow a swipe, as a fractional index such as a pager's position.
+ */
 @Composable
 fun SegmentedControl(
     options: List<String>,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    indicatorPosition: (() -> Float)? = null,
 ) {
     val colors = Mihraya.colors
     BoxWithConstraints(
@@ -247,7 +254,11 @@ fun SegmentedControl(
         if (selectedIndex >= 0) {
             Box(
                 Modifier
-                    .offset(x = offset)
+                    .offset {
+                        val x = indicatorPosition?.let { segment.toPx() * it().coerceIn(0f, options.lastIndex.toFloat()) }
+                            ?: offset.toPx()
+                        IntOffset(x.roundToInt(), 0)
+                    }
                     .width(segment)
                     .fillMaxHeight()
                     .clip(CircleShape)
@@ -377,7 +388,7 @@ fun ScreenHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
+            .windowInsetsPadding(WindowInsets.topChrome)
             .padding(top = 18.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -403,7 +414,7 @@ fun TopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
+            .windowInsetsPadding(WindowInsets.topChrome)
             .height(60.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,

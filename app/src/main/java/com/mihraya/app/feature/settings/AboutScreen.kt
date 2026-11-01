@@ -60,6 +60,14 @@ private val mediaCredits = listOf(
     Credit("Fonts", "Manrope, Amiri, Amiri Quran, Scheherazade New, Noto Naskh Arabic, Noto Nastaliq Urdu · SIL Open Font Licence 1.1", "https://fonts.google.com"),
 )
 
+private val licence = listOf(
+    Credit(
+        "Apache Licence 2.0",
+        "Mihraya's code and artwork. Quran text, translations, fonts and recordings keep their own licences.",
+        "https://github.com/jawad-mohammed35/mihraya-android",
+    ),
+)
+
 private val libraries = listOf(
     Credit("Jetpack Compose, Media3, WorkManager, DataStore", "Android Open Source Project · Apache 2.0", "https://developer.android.com/jetpack"),
     Credit("Haze", "Chris Banes · Apache 2.0", "https://github.com/chrisbanes/haze"),
@@ -144,6 +152,7 @@ fun AboutScreen(onBack: () -> Unit) {
         CreditGroup("Adhan & dua recordings", adhanCredits, footer = "Recordings were trimmed and volume-matched for Mihraya.")
         CreditGroup("Typography", mediaCredits)
         CreditGroup("Open-source libraries", libraries)
+        CreditGroup("Licence", licence)
 
         Text(
             "Prayer times are calculations. Please confirm with your local mosque, especially for Fajr, Ramadan and Eid.",

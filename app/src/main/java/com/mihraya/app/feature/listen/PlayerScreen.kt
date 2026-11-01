@@ -23,7 +23,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,6 +67,7 @@ import com.mihraya.app.core.designsystem.components.Pill
 import com.mihraya.app.core.designsystem.components.SecondaryButton
 import com.mihraya.app.core.designsystem.components.SheetOption
 import com.mihraya.app.core.designsystem.components.pressScale
+import com.mihraya.app.core.designsystem.components.topChrome
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.util.TimeFormat
 import com.mihraya.app.core.util.rememberHaptics
@@ -139,7 +141,7 @@ fun PlayerScreen(onCollapse: () -> Unit, onOpenReader: (surah: Int) -> Unit) {
         Column(
             Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
+                .windowInsetsPadding(WindowInsets.topChrome)
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp)
                 .widthIn(max = 520.dp)

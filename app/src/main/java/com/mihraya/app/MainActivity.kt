@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -28,15 +29,27 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val launches = MutableStateFlow(LaunchRequest())
+    private var launchPending = false
+    private var startedFromShortcut = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
         val container = appContainer
-        splash.setKeepOnScreenCondition { container.settings.state.value == null }
+        val createdAt = SystemClock.uptimeMillis()
+        splash.setKeepOnScreenCondition {
+            container.settings.state.value == null ||
+                (launchPending && SystemClock.uptimeMillis() - createdAt < MAX_LAUNCH_HOLD_MS)
+        }
         enableEdgeToEdge()
         clearSystemBarScrim()
-        handleIntent(intent)
+        if (savedInstanceState == null) {
+            if (intent?.getBooleanExtra(Destinations.KEEP_TASBIH, false) != true) container.library.startFreshTasbih()
+            startedFromShortcut = intent?.getBooleanExtra(Destinations.FROM_SHORTCUT, false) == true
+            launchPending = handleIntent(intent)
+        } else {
+            startedFromShortcut = savedInstanceState.getBoolean(STATE_FROM_SHORTCUT)
+        }
 
         setContent {
             val settings by container.settings.state.collectAsStateWithLifecycle()
@@ -66,12 +79,22 @@ class MainActivity : ComponentActivity() {
                     LocalHapticsEnabled provides current.haptics,
                     LocalUse24Hour provides current.use24Hour,
                 ) {
-                    MihrayaRoot(settings = current, launches = launches)
+                    MihrayaRoot(
+                        settings = current,
+                        launches = launches,
+                        onLaunchHandled = { launchPending = false },
+                        backgroundOnHomeBack = startedFromShortcut,
+                    )
                 }
             }
         }
 
         lifecycleScope.launch { container.refreshAutomaticLocation() }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_FROM_SHORTCUT, startedFromShortcut)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -80,10 +103,11 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
     }
 
-    private fun handleIntent(intent: Intent?) {
+    /** Returns whether the intent asked for a destination. */
+    private fun handleIntent(intent: Intent?): Boolean {
         val player = intent?.getBooleanExtra(EXTRA_OPEN_PLAYER, false) == true
         val dest = intent?.getStringExtra(Destinations.EXTRA)
-        if (!player && dest == null) return
+        if (!player && dest == null) return false
         if (player) intent?.removeExtra(EXTRA_OPEN_PLAYER)
         val current = launches.value
         launches.value = LaunchRequest(
@@ -93,6 +117,7 @@ class MainActivity : ComponentActivity() {
             surah = intent?.getIntExtra(Destinations.SURAH, 1) ?: 1,
             ayah = intent?.getIntExtra(Destinations.AYAH, 1) ?: 1,
         )
+        return true
     }
 
     override fun onStart() {
@@ -114,5 +139,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_OPEN_PLAYER = "open_player"
+        private const val MAX_LAUNCH_HOLD_MS = 1_500L
+        private const val STATE_FROM_SHORTCUT = "from_shortcut"
     }
 }

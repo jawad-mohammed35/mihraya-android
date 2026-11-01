@@ -1,6 +1,7 @@
 package com.mihraya.app.core.designsystem.icons
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -26,6 +27,55 @@ object MihrayaIcons {
     private fun ImageVector.Builder.solid(pathBuilder: PathBuilder.() -> Unit) =
         path(fill = SolidColor(Color.Black), pathBuilder = pathBuilder)
 
+    /** Filled shapes traced with the outline stroke, so filled icons keep the outlined icons' footprint. */
+    private fun ImageVector.Builder.filled(pathBuilder: PathBuilder.() -> Unit) = path(
+        fill = SolidColor(Color.Black),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.6f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round,
+        pathBuilder = pathBuilder,
+    )
+
+    /** Even-odd fill: inner subpaths become cut-outs. */
+    private fun ImageVector.Builder.cutout(pathBuilder: PathBuilder.() -> Unit) =
+        path(fill = SolidColor(Color.Black), pathFillType = PathFillType.EvenOdd, pathBuilder = pathBuilder)
+
+    private fun PathBuilder.mihrabArch() {
+        moveTo(5f, 20.5f)
+        lineTo(5f, 11.4f)
+        curveTo(5f, 7.8f, 7.9f, 5.1f, 12f, 3f)
+        curveTo(16.1f, 5.1f, 19f, 7.8f, 19f, 11.4f)
+        lineTo(19f, 20.5f)
+    }
+
+    private fun PathBuilder.openBook() {
+        moveTo(12f, 6.6f)
+        curveTo(10f, 5.1f, 7.1f, 4.6f, 3.5f, 5.2f)
+        lineTo(3.5f, 18.6f)
+        curveTo(7.1f, 18f, 10f, 18.4f, 12f, 19.9f)
+        curveTo(14f, 18.4f, 16.9f, 18f, 20.5f, 18.6f)
+        lineTo(20.5f, 5.2f)
+        curveTo(16.9f, 4.6f, 14f, 5.1f, 12f, 6.6f)
+        close()
+    }
+
+    private fun PathBuilder.headband() {
+        moveTo(4f, 15.5f)
+        lineTo(4f, 12.6f)
+        curveTo(4f, 8.1f, 7.6f, 4.6f, 12f, 4.6f)
+        curveTo(16.4f, 4.6f, 20f, 8.1f, 20f, 12.6f)
+        lineTo(20f, 15.5f)
+    }
+
+    private fun PathBuilder.beads(radius: Float, lastRadius: Float) {
+        for (i in 1 until 10) {
+            val angle = Math.toRadians(90.0 + i * 36.0)
+            circle(12f + (6.3f * Math.cos(angle)).toFloat(), 9.4f + (6.3f * Math.sin(angle)).toFloat(), radius)
+        }
+        circle(12f, 17.6f, lastRadius)
+    }
+
     private fun PathBuilder.circle(cx: Float, cy: Float, r: Float) {
         moveTo(cx - r, cy)
         arcTo(r, r, 0f, true, true, cx + r, cy)
@@ -49,11 +99,7 @@ object MihrayaIcons {
     val Home: ImageVector by lazy {
         icon("Mihrab") {
             stroke {
-                moveTo(5f, 20.5f)
-                lineTo(5f, 11.4f)
-                curveTo(5f, 7.8f, 7.9f, 5.1f, 12f, 3f)
-                curveTo(16.1f, 5.1f, 19f, 7.8f, 19f, 11.4f)
-                lineTo(19f, 20.5f)
+                mihrabArch()
                 moveTo(3.5f, 20.5f)
                 lineTo(20.5f, 20.5f)
             }
@@ -71,33 +117,66 @@ object MihrayaIcons {
         }
     }
 
+    /** The arch filled in, with the hanging lamp cut out of it. */
+    val HomeFilled: ImageVector by lazy {
+        icon("MihrabFilled") {
+            cutout {
+                mihrabArch()
+                close()
+                moveTo(11.4f, 10.8f)
+                lineTo(11.4f, 7.8f)
+                arcTo(0.6f, 0.6f, 0f, false, true, 12.6f, 7.8f)
+                lineTo(12.6f, 10.8f)
+                close()
+                moveTo(10.3f, 10.8f)
+                lineTo(13.7f, 10.8f)
+                lineTo(13.05f, 13.4f)
+                curveTo(12.85f, 14.1f, 11.15f, 14.1f, 10.95f, 13.4f)
+                close()
+            }
+            stroke {
+                mihrabArch()
+                moveTo(3.5f, 20.5f)
+                lineTo(20.5f, 20.5f)
+            }
+        }
+    }
+
     val Quran: ImageVector by lazy {
         icon("Quran") {
             stroke {
-                moveTo(12f, 6.6f)
-                curveTo(10f, 5.1f, 7.1f, 4.6f, 3.5f, 5.2f)
-                lineTo(3.5f, 18.6f)
-                curveTo(7.1f, 18f, 10f, 18.4f, 12f, 19.9f)
-                curveTo(14f, 18.4f, 16.9f, 18f, 20.5f, 18.6f)
-                lineTo(20.5f, 5.2f)
-                curveTo(16.9f, 4.6f, 14f, 5.1f, 12f, 6.6f)
-                close()
+                openBook()
                 moveTo(12f, 6.6f)
                 lineTo(12f, 19.9f)
             }
         }
     }
 
+    /** Both pages filled, with the spine left as a crease. */
+    val QuranFilled: ImageVector by lazy {
+        icon("QuranFilled") {
+            cutout {
+                openBook()
+                roundRect(11.45f, 8.1f, 1.1f, 10.1f, 0.55f)
+            }
+            stroke { openBook() }
+        }
+    }
+
     val Listen: ImageVector by lazy {
         icon("Listen") {
+            stroke { headband() }
             stroke {
-                moveTo(4f, 15.5f)
-                lineTo(4f, 12.6f)
-                curveTo(4f, 8.1f, 7.6f, 4.6f, 12f, 4.6f)
-                curveTo(16.4f, 4.6f, 20f, 8.1f, 20f, 12.6f)
-                lineTo(20f, 15.5f)
+                roundRect(4f, 13.6f, 3.6f, 6.2f, 1.5f)
+                roundRect(16.4f, 13.6f, 3.6f, 6.2f, 1.5f)
             }
-            stroke {
+        }
+    }
+
+    val ListenFilled: ImageVector by lazy {
+        icon("ListenFilled") {
+            stroke { headband() }
+            filled {
                 roundRect(4f, 13.6f, 3.6f, 6.2f, 1.5f)
                 roundRect(16.4f, 13.6f, 3.6f, 6.2f, 1.5f)
             }
@@ -128,15 +207,31 @@ object MihrayaIcons {
         }
     }
 
+    val MoreFilled: ImageVector by lazy {
+        icon("MoreFilled") {
+            filled {
+                roundRect(4f, 4f, 6.5f, 6.5f, 2f)
+                roundRect(13.5f, 4f, 6.5f, 6.5f, 2f)
+                roundRect(4f, 13.5f, 6.5f, 6.5f, 2f)
+                roundRect(13.5f, 13.5f, 6.5f, 6.5f, 2f)
+            }
+        }
+    }
+
     val Tasbih: ImageVector by lazy {
         icon("Tasbih") {
-            solid {
-                for (i in 1 until 10) {
-                    val angle = Math.toRadians(90.0 + i * 36.0)
-                    circle(12f + (6.3f * Math.cos(angle)).toFloat(), 9.4f + (6.3f * Math.sin(angle)).toFloat(), 1.55f)
-                }
-                circle(12f, 17.6f, 1.25f)
+            solid { beads(radius = 1.55f, lastRadius = 1.25f) }
+            stroke(1.5f) {
+                moveTo(12f, 18.9f)
+                lineTo(12f, 21.6f)
             }
+        }
+    }
+
+    /** [Tasbih] with hollow beads, for the unselected tab. */
+    val TasbihOutlined: ImageVector by lazy {
+        icon("TasbihOutlined") {
+            stroke(0.9f) { beads(radius = 1.35f, lastRadius = 1.1f) }
             stroke(1.5f) {
                 moveTo(12f, 18.9f)
                 lineTo(12f, 21.6f)

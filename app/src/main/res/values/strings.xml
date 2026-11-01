@@ -8,4 +8,7 @@
     <string name="widget_bookmarks">Quran bookmarks</string>
     <string name="widget_audio">Resume recitation</string>
     <string name="widget_tasbih">Tasbih</string>
+    <string name="shortcut_quran">Quran</string>
+    <string name="shortcut_listen">Listen</string>
+    <string name="shortcut_tasbih">Tasbih</string>
 </resources>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_quran"
+        android:shortcutId="quran"
+        android:shortcutLongLabel="@string/shortcut_quran"
+        android:shortcutShortLabel="@string/shortcut_quran">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.mihraya.app.ShortcutActivity"
+            android:targetPackage="com.mihraya.app">
+            <extra
+                android:name="mihraya_dest"
+                android:value="quran" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_listen"
+        android:shortcutId="listen"
+        android:shortcutLongLabel="@string/shortcut_listen"
+        android:shortcutShortLabel="@string/shortcut_listen">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.mihraya.app.ShortcutActivity"
+            android:targetPackage="com.mihraya.app">
+            <extra
+                android:name="mihraya_dest"
+                android:value="listen" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_tasbih"
+        android:shortcutId="tasbih"
+        android:shortcutLongLabel="@string/shortcut_tasbih"
+        android:shortcutShortLabel="@string/shortcut_tasbih">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.mihraya.app.ShortcutActivity"
+            android:targetPackage="com.mihraya.app">
+            <extra
+                android:name="mihraya_dest"
+                android:value="tasbih" />
+        </intent>
+    </shortcut>
+</shortcuts>

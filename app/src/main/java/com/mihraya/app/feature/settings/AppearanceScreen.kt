@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mihraya.app.core.designsystem.components.SectionLabel
-import com.mihraya.app.core.designsystem.components.SettingsDivider
 import com.mihraya.app.core.designsystem.components.SettingsGroup
 import com.mihraya.app.core.designsystem.components.SettingsSwitchRow
 import com.mihraya.app.core.designsystem.components.glass
@@ -66,7 +65,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
                     ThemeCard(
                         mode = mode,
                         accent = settings.accent,
-                        pureBlack = settings.pureOledBlack && mode == ThemeMode.Dark,
+                        pureBlack = settings.pureOledBlack,
                         selected = settings.theme == mode,
                         onClick = {
                             haptics.tap()
@@ -78,7 +77,7 @@ fun AppearanceScreen(onBack: () -> Unit) {
             }
             Spacer(Modifier.height(10.dp))
             Text(
-                "Black is a deep charcoal. Turn on Pure OLED Black in Display for true black backgrounds.",
+                "Black is a deep charcoal. Turn on OLED Black in Display for true black backgrounds.",
                 style = Mihraya.type.caption,
                 color = Mihraya.colors.textTertiary,
                 modifier = Modifier.padding(horizontal = 6.dp),
@@ -105,29 +104,10 @@ fun AppearanceScreen(onBack: () -> Unit) {
 
         SettingsGroup("Display") {
             SettingsSwitchRow(
-                title = "Pure OLED Black",
+                title = "OLED Black",
                 checked = settings.pureOledBlack,
-                enabled = settings.theme == ThemeMode.Dark,
+                enabled = settings.theme != ThemeMode.Light,
                 onCheckedChange = { enabled -> container.settings.edit { it.copy(pureOledBlack = enabled) } },
-                subtitle = if (settings.theme == ThemeMode.Dark) {
-                    "True black backgrounds for OLED screens"
-                } else {
-                    "Available when Black is selected"
-                },
-            )
-            SettingsDivider()
-            SettingsSwitchRow(
-                title = "24-hour time",
-                checked = settings.use24Hour,
-                onCheckedChange = { v -> container.settings.edit { it.copy(use24Hour = v) } },
-                subtitle = if (settings.use24Hour) "Prayer times shown as 17:42" else "Prayer times shown as 5:42 PM",
-            )
-            SettingsDivider()
-            SettingsSwitchRow(
-                title = "Haptic feedback",
-                checked = settings.haptics,
-                onCheckedChange = { v -> container.settings.edit { it.copy(haptics = v) } },
-                subtitle = "Subtle taps for the tasbīḥ, compass and controls",
             )
         }
     }
@@ -165,7 +145,7 @@ private fun ThemeCard(
         ) {
             MiniScreen(palette, Modifier.fillMaxSize().padding(8.dp))
             if (mode == ThemeMode.System) {
-                val dark = darkPalette(accent, pureBlack = false)
+                val dark = darkPalette(accent, pureBlack)
                 Box(
                     Modifier
                         .matchParentSize()

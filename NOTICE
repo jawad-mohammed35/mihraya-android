@@ -1,0 +1,63 @@
+Mihraya
+Copyright 2026 Jawad Mohammed
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The Apache License covers Mihraya's own source code, icons and artwork. It does not
+cover the third-party material listed below. That material stays under its owners'
+terms and is not relicensed by this project.
+
+
+Bundled in this repository and in the app
+-----------------------------------------
+
+Quran text and translations: app/src/main/assets/quran/
+  uthmani.txt, indopak.txt   Quran text in the Uthmani and IndoPak scripts
+  tr_20.txt                  Saheeh International (English)
+  tr_234.txt                 Fateh Muhammad Jalandhari (Urdu)
+  tr_57.txt                  Transliteration
+  Retrieved through the Quran.com API (Quran Foundation). Use is subject to the
+  Quran Foundation Developer Terms and to the rights of each translation's publisher.
+  https://api-docs.quran.foundation/legal/developer-terms/
+
+Fonts: app/src/main/res/font/
+  SIL Open Font License 1.1. Copyright notices and licence text: licenses/OFL-1.1.txt
+  Amiri, Amiri Quran, Manrope, Noto Naskh Arabic, Noto Nastaliq Urdu, Scheherazade New
+
+Adhan recordings: app/src/main/res/raw/
+  Trimmed and volume-matched for Mihraya.
+  adhan_makkah.ogg      "Maghrib Adhan at the Masjid al Haram, Mecca - 25 Feb, 2012"
+                        by 3omar Faruq, CC BY 3.0, Wikimedia Commons
+  adhan_klcc.ogg        Azan Zhur, Masjid KLCC, CC0, Internet Archive
+  adhan_shalqar.ogg     "Adhan in Shalqar mosque" by Esetok, CC BY-SA 4.0,
+                        Wikimedia Commons. This adaptation is shared under CC BY-SA 4.0.
+  adhan_azeez.ogg       "The Adhan - Muslim Call to Prayer - Aaqib Azeez", uploaded by
+                        Atcovi, CC BY-SA 4.0, Wikimedia Commons. This adaptation is
+                        shared under CC BY-SA 4.0.
+  adhan_fajr_malmo.ogg  Eid al-Fitr Fajr azan at Malmö Mosque, Islamic Center Malmö,
+                        CC BY 3.0, Wikimedia Commons
+  adhan_fajr_fouad.ogg  Adan Alfajr by Fouad Adan, public domain, Internet Archive
+
+
+Downloaded by the app on request (not in this repository)
+---------------------------------------------------------
+
+  Recitation audio          mp3quran.net, which permits use of its material and links
+  Dua after the Adhan       hisnmuslim.com
+  More translations, tajweed text
+                            Quran.com API (Quran Foundation), terms as above
+  City search               Open-Meteo geocoding, GeoNames data under CC BY 4.0
+
+
+Libraries compiled into the app
+-------------------------------
+
+  AndroidX: Jetpack Compose, Activity, Lifecycle, Navigation, Media3, WorkManager,
+    DataStore, Glance, Core          Apache 2.0, The Android Open Source Project
+  Kotlin, kotlinx.coroutines, kotlinx.serialization
+                                     Apache 2.0, JetBrains
+  OkHttp, Okio                       Apache 2.0, Square
+  Guava (ListenableFuture)           Apache 2.0, Google
+  Haze                               Apache 2.0, Chris Banes
+  Adhan                              MIT, Copyright (c) 2016 Batoul Apps
+                                     (licenses/adhan-java-MIT.txt)

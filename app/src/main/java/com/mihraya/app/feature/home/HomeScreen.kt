@@ -14,10 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,6 +60,7 @@ import com.mihraya.app.core.designsystem.components.HairlineDivider
 import com.mihraya.app.core.designsystem.components.PrimaryButton
 import com.mihraya.app.core.designsystem.components.SecondaryButton
 import com.mihraya.app.core.designsystem.components.SectionLabel
+import com.mihraya.app.core.designsystem.components.topChrome
 import com.mihraya.app.core.designsystem.icons.MihrayaIcons
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.LocalUse24Hour
@@ -99,7 +101,6 @@ fun HomeScreen(actions: HomeActions) {
     val d = dashboard
 
     Box(Modifier.fillMaxSize()) {
-        AmbientGlow()
         if (d == null) return@Box
 
         val item = Modifier
@@ -191,10 +192,11 @@ fun HomeScreen(actions: HomeActions) {
     }
 }
 
+/** The accent glow behind Home. Drawn behind the screens so it reaches up through the status bar. */
 @Composable
-private fun AmbientGlow() {
+fun AmbientGlow(modifier: Modifier = Modifier) {
     val colors = Mihraya.colors
-    Canvas(Modifier.fillMaxWidth().height(460.dp)) {
+    Canvas(modifier.fillMaxWidth().height(460.dp)) {
         drawRect(
             Brush.radialGradient(
                 colors = listOf(colors.accent.copy(alpha = if (colors.isDark) 0.13f else 0.10f), colors.accent.copy(alpha = 0f)),
@@ -217,7 +219,7 @@ private fun Header(
     modifier: Modifier = Modifier,
 ) {
     val colors = Mihraya.colors
-    Column(modifier.statusBarsPadding().padding(top = 14.dp, bottom = 4.dp)) {
+    Column(modifier.windowInsetsPadding(WindowInsets.topChrome).padding(top = 14.dp, bottom = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Row(
                 Modifier
@@ -546,7 +548,7 @@ private fun QuickAccess(dashboard: HomeDashboard, actions: HomeActions, modifier
     val readProgress = lastRead?.let { "Juzʾ ${QuranMeta.juzOf(it.surah, it.ayah)} of ${QuranMeta.JUZ_COUNT}" } ?: "Begin your journey"
     val lastPlayed = dashboard.lastPlayed
     val listenTitle = lastPlayed?.let { QuranMeta.surah(it.surah).name } ?: "Recitations"
-    val listenSubtitle = lastPlayed?.let { Reciters.byId(it.reciterId).shortName } ?: "7 renowned reciters"
+    val listenSubtitle = lastPlayed?.let { Reciters.byId(it.reciterId).shortName } ?: "${Reciters.all.size} renowned reciters"
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SectionLabel("Your day")

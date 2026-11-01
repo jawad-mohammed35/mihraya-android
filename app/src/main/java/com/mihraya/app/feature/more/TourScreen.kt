@@ -12,7 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.mihraya.app.core.designsystem.components.GlassCard
 import com.mihraya.app.core.designsystem.components.PrimaryButton
 import com.mihraya.app.core.designsystem.components.SecondaryButton
+import com.mihraya.app.core.designsystem.components.topChrome
 import com.mihraya.app.core.designsystem.icons.MihrayaIcons
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import kotlinx.coroutines.launch
@@ -75,7 +77,7 @@ fun TourScreen(onDone: () -> Unit) {
         Modifier
             .fillMaxSize()
             .background(colors.background)
-            .statusBarsPadding()
+            .windowInsetsPadding(WindowInsets.topChrome)
             .navigationBarsPadding()
             .padding(horizontal = 24.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

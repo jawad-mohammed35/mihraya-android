@@ -8,7 +8,6 @@ import com.mihraya.app.data.audio.Reciter
 import com.mihraya.app.data.audio.Reciters
 import com.mihraya.app.data.library.LastPlayed
 import com.mihraya.app.playback.PlaybackUiState
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -19,8 +18,6 @@ class ListenViewModel(private val container: AppContainer) : ViewModel() {
     val reciter: StateFlow<Reciter> = container.settings.flow
         .map { Reciters.byId(it.reciterId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Reciters.byId(container.settings.state.value?.reciterId))
-
-    val filter = MutableStateFlow(0)
 
     val downloaded: StateFlow<Map<String, Set<Int>>> = container.audioDownloads.downloaded
 

@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Bookmark
@@ -42,14 +44,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mihraya.app.core.designsystem.components.CircleIconButton
+import com.mihraya.app.core.designsystem.components.CollapsingHeaderLayout
 import com.mihraya.app.core.designsystem.components.EmptyState
 import com.mihraya.app.core.designsystem.components.GlassCard
 import com.mihraya.app.core.designsystem.components.HairlineDivider
+import com.mihraya.app.core.designsystem.components.PagerTabs
 import com.mihraya.app.core.designsystem.components.ScreenHeader
 import com.mihraya.app.core.designsystem.components.SearchField
 import com.mihraya.app.core.designsystem.components.SectionLabel
-import com.mihraya.app.core.designsystem.components.SegmentedControl
 import com.mihraya.app.core.designsystem.components.StarBadge
+import com.mihraya.app.core.designsystem.components.fadeAbove
+import com.mihraya.app.core.designsystem.components.rememberCollapsingHeaderState
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.data.library.Bookmark
@@ -61,92 +66,122 @@ import com.mihraya.app.data.quran.arabicDigits
 import com.mihraya.app.feature.home.ProgressLine
 import com.mihraya.app.ui.LocalBottomInset
 import com.mihraya.app.ui.mihrayaViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> Unit) {
     val vm = mihrayaViewModel { QuranViewModel(it) }
     val query by vm.query.collectAsStateWithLifecycle()
-    val tab by vm.tab.collectAsStateWithLifecycle()
     val library by vm.library.collectAsStateWithLifecycle()
     val verseSearch by vm.verseSearch.collectAsStateWithLifecycle()
     val searching = query.isNotBlank()
     val item = Modifier.widthIn(max = 680.dp).fillMaxWidth()
-    val listState = rememberLazyListState()
+    val header = rememberCollapsingHeaderState()
+    val pager = rememberPagerState { 3 }
+    val surahList = rememberLazyListState()
+    val juzList = rememberLazyListState()
+    val bookmarkList = rememberLazyListState()
+    val searchList = rememberLazyListState()
+    val lists = listOf(surahList, juzList, bookmarkList)
+    val visibleList = { if (searching) searchList else lists[pager.currentPage] }
     LaunchedEffect(scrollToTop) {
-        if (scrollToTop > 0) listState.animateScrollToItem(0)
+        if (scrollToTop > 0) {
+            launch { header.expand() }
+            visibleList().animateScrollToItem(0)
+        }
     }
+    val listPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = LocalBottomInset.current + 16.dp)
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = LocalBottomInset.current + 16.dp),
-    ) {
-        item(key = "header") {
-            ScreenHeader("Quran", modifier = item)
-        }
-        item(key = "search") {
-            SearchField(
-                value = query,
-                onValueChange = { vm.query.value = it },
-                placeholder = "Sūrah, verse 2:255, or a word",
-                modifier = item.padding(top = 10.dp, bottom = 16.dp),
-            )
-        }
-
-        if (searching) {
-            searchResults(query, vm, verseSearch, onOpenReader, item)
-        } else {
-            library.lastRead?.let { position ->
-                item(key = "continue") {
-                    ContinueReadingCard(position, onClick = { onOpenReader(position.surah, position.ayah) }, modifier = item)
-                    Spacer(Modifier.height(16.dp))
-                }
-            }
-            item(key = "tabs") {
-                SegmentedControl(
-                    options = listOf("Sūrahs", "Juzʾ", "Bookmarks"),
-                    selectedIndex = tab,
-                    onSelect = { vm.tab.value = it },
-                    modifier = item.padding(bottom = 8.dp),
+    CollapsingHeaderLayout(
+        state = header,
+        canScrollForward = { visibleList().canScrollForward },
+        header = {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                ScreenHeader("Quran", modifier = item)
+                SearchField(
+                    value = query,
+                    onValueChange = { vm.query.value = it },
+                    placeholder = "Sūrah, verse 2:255, or a word",
+                    modifier = item.padding(top = 10.dp, bottom = 8.dp),
                 )
+                if (!searching) {
+                    library.lastRead?.let { position ->
+                        ContinueReadingCard(
+                            position,
+                            onClick = { onOpenReader(position.surah, position.ayah) },
+                            modifier = item.padding(top = 8.dp, bottom = 8.dp),
+                        )
+                    }
+                }
             }
-            when (tab) {
-                0 -> items(QuranMeta.surahs, key = { "s${it.number}" }) { surah ->
-                    SurahRow(
-                        surah = surah,
-                        highlighted = library.lastRead?.surah == surah.number,
-                        onClick = { onOpenReader(surah.number, 1) },
-                        modifier = item,
-                    )
+        },
+        pinned = {
+            if (!searching) {
+                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                    PagerTabs(listOf("Sūrahs", "Juzʾ", "Bookmarks"), pager, item)
                 }
-                1 -> items((1..QuranMeta.JUZ_COUNT).toList(), key = { "j$it" }) { juz ->
-                    JuzRow(juz, onClick = { QuranMeta.juzStart(juz).let { onOpenReader(it.surah, it.ayah) } }, modifier = item)
+            }
+        },
+        body = {
+            if (searching) {
+                LazyColumn(
+                    state = searchList,
+                    modifier = Modifier.fillMaxSize().fadeAbove(top = 8.dp, fade = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentPadding = listPadding,
+                ) {
+                    searchResults(query, vm, verseSearch, onOpenReader, item)
                 }
-                else -> {
-                    if (library.bookmarks.isEmpty()) {
-                        item(key = "noBookmarks") {
-                            EmptyState(
-                                icon = Icons.Rounded.BookmarkBorder,
-                                title = "No bookmarks yet",
-                                message = "Tap the bookmark icon beside any verse to save it here.",
-                                modifier = item,
-                            )
-                        }
-                    } else {
-                        items(library.bookmarks, key = { "b${it.surah}:${it.ayah}" }) { bookmark ->
-                            BookmarkRow(
-                                bookmark = bookmark,
-                                onClick = { onOpenReader(bookmark.surah, bookmark.ayah) },
-                                onRemove = { vm.removeBookmark(bookmark.surah, bookmark.ayah) },
-                                modifier = item,
-                            )
+            } else {
+                HorizontalPager(
+                    state = pager,
+                    beyondViewportPageCount = 1,
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.fillMaxSize().fadeAbove(top = 8.dp, fade = 8.dp),
+                ) { page ->
+                    LazyColumn(
+                        state = lists[page],
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        contentPadding = listPadding,
+                    ) {
+                        when (page) {
+                            0 -> items(QuranMeta.surahs, key = { "s${it.number}" }) { surah ->
+                                SurahRow(
+                                    surah = surah,
+                                    highlighted = library.lastRead?.surah == surah.number,
+                                    onClick = { onOpenReader(surah.number, 1) },
+                                    modifier = item,
+                                )
+                            }
+                            1 -> items((1..QuranMeta.JUZ_COUNT).toList(), key = { "j$it" }) { juz ->
+                                JuzRow(juz, onClick = { QuranMeta.juzStart(juz).let { onOpenReader(it.surah, it.ayah) } }, modifier = item)
+                            }
+                            else -> if (library.bookmarks.isEmpty()) {
+                                item(key = "noBookmarks") {
+                                    EmptyState(
+                                        icon = Icons.Rounded.BookmarkBorder,
+                                        title = "No bookmarks yet",
+                                        message = "Tap the bookmark icon beside any verse to save it here.",
+                                        modifier = item,
+                                    )
+                                }
+                            } else {
+                                items(library.bookmarks, key = { "b${it.surah}:${it.ayah}" }) { bookmark ->
+                                    BookmarkRow(
+                                        bookmark = bookmark,
+                                        onClick = { onOpenReader(bookmark.surah, bookmark.ayah) },
+                                        onRemove = { vm.removeBookmark(bookmark.surah, bookmark.ayah) },
+                                        modifier = item,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-    }
+        },
+    )
 }
 
 private fun LazyListScope.searchResults(

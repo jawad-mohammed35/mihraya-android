@@ -66,6 +66,26 @@ object Reciters {
             "abkar", "Idris Abkar", "Abkar", "إدريس أبكر", "أبكر",
             "Murattal · Ḥafṣ", "Eritrea", "https://cdn.mp3quran.net/audio/idrees-abkar/r1/", 0xFF7A6230,
         ),
+        Reciter(
+            "shuraim", "Saud Al-Shuraim", "Al-Shuraim", "سعود الشريم", "الشريم",
+            "Murattal · Ḥafṣ", "Makkah", "https://cdn.mp3quran.net/audio/saud-shuraim/r1/", 0xFF3B3F7A,
+        ),
+        Reciter(
+            "ajmi", "Ahmad Al-Ajmi", "Al-Ajmi", "أحمد بن علي العجمي", "العجمي",
+            "Murattal · Ḥafṣ", "Saudi Arabia", "https://cdn.mp3quran.net/audio/ahmad-ajmi/r1/", 0xFF7A3030,
+        ),
+        Reciter(
+            "hudhaifi", "Ali Al-Hudhaifi", "Al-Hudhaifi", "علي بن عبد الرحمن الحذيفي", "الحذيفي",
+            "Murattal · Ḥafṣ", "Madinah", "https://cdn.mp3quran.net/audio/ali-hudhaifi/r1/", 0xFF3F6E3A,
+        ),
+        Reciter(
+            "juhany", "Abdullah Al-Juhany", "Al-Juhany", "عبد الله عواد الجهني", "الجهني",
+            "Murattal · Ḥafṣ", "Makkah", "https://cdn.mp3quran.net/audio/abdullah-juhani/r1/", 0xFF5E3A72,
+        ),
+        Reciter(
+            "rifai", "Hani Ar-Rifai", "Ar-Rifai", "هاني الرفاعي", "الرفاعي",
+            "Murattal · Ḥafṣ", "Saudi Arabia", "https://cdn.mp3quran.net/audio/hani-rifai/r1/", 0xFF6E6A2A,
+        ),
     )
 
     val Default: Reciter = all.first()

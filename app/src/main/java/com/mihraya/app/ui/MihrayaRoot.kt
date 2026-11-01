@@ -4,8 +4,11 @@ import android.app.Activity
 import android.content.pm.ActivityInfo
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,11 +24,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -37,9 +38,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,8 +55,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.mihraya.app.AppContainer
+import com.mihraya.app.core.designsystem.components.fadeAbove
+import com.mihraya.app.core.designsystem.components.topChrome
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.data.settings.AppSettings
+import com.mihraya.app.feature.home.AmbientGlow
 import com.mihraya.app.feature.home.HomeActions
 import com.mihraya.app.feature.home.HomeScreen
 import com.mihraya.app.feature.listen.ListenScreen
@@ -78,14 +83,25 @@ import com.mihraya.app.feature.welcome.WelcomeScreen
 import com.mihraya.app.widget.Destinations
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
 val LocalAppContainer = staticCompositionLocalOf<AppContainer> { error("AppContainer not provided") }
 
+/**
+ * [onLaunchHandled] fires once the launch request present at start-up has been acted on.
+ * [backgroundOnHomeBack] makes Back on Home leave the app running, as Android does after an icon launch.
+ */
 @Composable
-fun MihrayaRoot(settings: AppSettings, launches: StateFlow<LaunchRequest>) {
+fun MihrayaRoot(
+    settings: AppSettings,
+    launches: StateFlow<LaunchRequest>,
+    onLaunchHandled: () -> Unit,
+    backgroundOnHomeBack: Boolean = false,
+) {
     val container = LocalAppContainer.current
     if (!settings.onboardingDone) {
+        LaunchedEffect(Unit) { onLaunchHandled() }
         WelcomeScreen(onDone = { container.settings.edit { it.copy(onboardingDone = true) } })
         return
     }
@@ -98,18 +114,38 @@ fun MihrayaRoot(settings: AppSettings, launches: StateFlow<LaunchRequest>) {
     var listenScroll by remember { mutableIntStateOf(0) }
     val playback by container.player.state.collectAsStateWithLifecycle()
     val launch by launches.collectAsStateWithLifecycle()
+    val startupNonce = remember { launches.value.nonce }
+    var instantEntryId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(launch.nonce) {
-        if (launch.nonce == 0) return@LaunchedEffect
-        if (launch.player) playerExpanded = true
-        when (launch.dest) {
-            Destinations.TIMETABLE -> navController.navigate(TimetableRoute) { launchSingleTop = true }
-            Destinations.QIBLA -> navController.navigate(QiblaRoute) { launchSingleTop = true }
-            Destinations.READER -> navController.navigate(ReaderRoute(launch.surah, launch.ayah)) { launchSingleTop = true }
-            Destinations.LISTEN -> navController.navigateTopLevel(TopLevel.Listen)
-            Destinations.TASBIH -> navController.navigateTopLevel(TopLevel.Tasbih)
-            Destinations.PLAYER -> playerExpanded = true
+        if (launch.nonce == 0) {
+            onLaunchHandled()
+            return@LaunchedEffect
         }
+        if (launch.player) playerExpanded = true
+        val tab = when (launch.dest) {
+            Destinations.QURAN -> TopLevel.Quran
+            Destinations.LISTEN -> TopLevel.Listen
+            Destinations.TASBIH -> TopLevel.Tasbih
+            else -> null
+        }
+        when {
+            tab != null -> {
+                playerExpanded = false
+                navController.navigateTopLevel(tab)
+            }
+            launch.dest == Destinations.TIMETABLE -> navController.navigate(TimetableRoute) { launchSingleTop = true }
+            launch.dest == Destinations.QIBLA -> navController.navigate(QiblaRoute) { launchSingleTop = true }
+            launch.dest == Destinations.READER -> navController.navigate(ReaderRoute(launch.surah, launch.ayah)) { launchSingleTop = true }
+            launch.dest == Destinations.PLAYER -> playerExpanded = true
+        }
+        if (launch.nonce != startupNonce) return@LaunchedEffect
+        // Opened straight into a destination: it replaces Home behind the splash screen, without a transition.
+        instantEntryId = navController.currentBackStackEntry?.id
+        repeat(3) { withFrameNanos { } }
+        onLaunchHandled()
+        delay(1_000)
+        instantEntryId = null
     }
 
     val entry by navController.currentBackStackEntryAsState()
@@ -135,36 +171,29 @@ fun MihrayaRoot(settings: AppSettings, launches: StateFlow<LaunchRequest>) {
         label = "bottomInset",
     )
 
+    val onHome = entry?.destination?.hasRoute<HomeRoute>() == true
+    val glow by animateFloatAsState(if (onHome) 1f else 0f, tween(300), label = "homeGlow")
+    val topInset = WindowInsets.topChrome.asPaddingValues().calculateTopPadding()
+
     Box(
         Modifier
             .fillMaxSize()
             .background(colors.background),
     ) {
+        if (glow > 0f) AmbientGlow(Modifier.graphicsLayer { alpha = glow })
         CompositionLocalProvider(LocalBottomInset provides bottomInset) {
             MihrayaNavHost(
                 navController = navController,
                 openPlayer = { playerExpanded = true },
                 quranScroll = quranScroll,
                 listenScroll = listenScroll,
+                instantEntryId = { instantEntryId },
                 modifier = Modifier
                     .fillMaxSize()
+                    .fadeAbove(topInset)
                     .hazeSource(hazeState),
             )
         }
-
-        val statusBar = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(statusBar + 14.dp)
-                .background(
-                    Brush.verticalGradient(
-                        0f to colors.background,
-                        statusBar / (statusBar + 14.dp) to colors.background.copy(alpha = 0.92f),
-                        1f to colors.background.copy(alpha = 0f),
-                    ),
-                ),
-        )
 
         Column(
             modifier = Modifier
@@ -218,6 +247,9 @@ fun MihrayaRoot(settings: AppSettings, launches: StateFlow<LaunchRequest>) {
         }
     }
 
+    BackHandler(enabled = backgroundOnHomeBack && onHome && !playerExpanded) {
+        (context as? Activity)?.moveTaskToBack(true)
+    }
     BackHandler(enabled = playerExpanded) { playerExpanded = false }
 }
 
@@ -235,6 +267,7 @@ private fun MihrayaNavHost(
     openPlayer: () -> Unit,
     quranScroll: Int,
     listenScroll: Int,
+    instantEntryId: () -> String?,
     modifier: Modifier = Modifier,
 ) {
     val back: () -> Unit = { navController.popBackStack() }
@@ -242,8 +275,11 @@ private fun MihrayaNavHost(
         navController = navController,
         startDestination = HomeRoute,
         modifier = modifier,
-        enterTransition = { fadeIn(tween(260)) + scaleIn(tween(300), initialScale = 0.985f) },
-        exitTransition = { fadeOut(tween(180)) },
+        enterTransition = {
+            if (targetState.id == instantEntryId()) EnterTransition.None
+            else fadeIn(tween(260)) + scaleIn(tween(300), initialScale = 0.985f)
+        },
+        exitTransition = { if (targetState.id == instantEntryId()) ExitTransition.None else fadeOut(tween(180)) },
         popEnterTransition = { fadeIn(tween(260)) },
         popExitTransition = { fadeOut(tween(200)) + scaleOut(tween(220), targetScale = 0.985f) },
     ) {

@@ -3,6 +3,7 @@ package com.mihraya.app.core.designsystem.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import com.mihraya.app.data.settings.AccentColor
+import com.mihraya.app.data.settings.ThemeMode
 
 @Immutable
 data class MihrayaColors(
@@ -30,6 +31,16 @@ fun accentFor(accent: AccentColor, dark: Boolean): Color = when (accent) {
     AccentColor.Silver -> if (dark) Color(0xFFCCD2D9) else Color(0xFF59616C)
     AccentColor.Lapis -> if (dark) Color(0xFF93B4E6) else Color(0xFF2F5A9A)
 }
+
+fun ThemeMode.isDark(systemDark: Boolean): Boolean = when (this) {
+    ThemeMode.Dark -> true
+    ThemeMode.Light -> false
+    ThemeMode.System -> systemDark
+}
+
+/** [pureBlack] applies whenever the dark palette is showing, including System while the device is dark. */
+fun paletteFor(mode: ThemeMode, systemDark: Boolean, accent: AccentColor, pureBlack: Boolean): MihrayaColors =
+    if (mode.isDark(systemDark)) darkPalette(accent, pureBlack) else lightPalette(accent)
 
 fun darkPalette(accent: AccentColor, pureBlack: Boolean = false): MihrayaColors {
     val a = accentFor(accent, dark = true)

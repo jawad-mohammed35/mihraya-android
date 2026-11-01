@@ -29,11 +29,7 @@ object Mihraya {
 }
 
 @Composable
-fun isDarkTheme(mode: ThemeMode): Boolean = when (mode) {
-    ThemeMode.Dark -> true
-    ThemeMode.Light -> false
-    ThemeMode.System -> isSystemInDarkTheme()
-}
+fun isDarkTheme(mode: ThemeMode): Boolean = mode.isDark(isSystemInDarkTheme())
 
 @Composable
 private fun animated(target: Color): Color {
@@ -48,8 +44,8 @@ fun MihrayaTheme(
     pureBlack: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val dark = isDarkTheme(mode)
-    val target = if (dark) darkPalette(accent, pureBlack = pureBlack && mode == ThemeMode.Dark) else lightPalette(accent)
+    val target = paletteFor(mode, isSystemInDarkTheme(), accent, pureBlack)
+    val dark = target.isDark
     val colors = target.copy(
         background = animated(target.background),
         surface = animated(target.surface),

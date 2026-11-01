@@ -31,10 +31,10 @@ data class LaunchRequest(
     val ayah: Int = 1,
 )
 
-enum class TopLevel(val label: String, val icon: ImageVector, val route: Any) {
-    Home("Home", MihrayaIcons.Home, HomeRoute),
-    Quran("Quran", MihrayaIcons.Quran, QuranRoute),
-    Listen("Listen", MihrayaIcons.Listen, ListenRoute),
-    Tasbih("Tasbih", MihrayaIcons.Tasbih, TasbihRoute),
-    More("More", MihrayaIcons.More, MoreRoute),
+enum class TopLevel(val label: String, val icon: ImageVector, val selectedIcon: ImageVector, val route: Any) {
+    Home("Home", MihrayaIcons.Home, MihrayaIcons.HomeFilled, HomeRoute),
+    Quran("Quran", MihrayaIcons.Quran, MihrayaIcons.QuranFilled, QuranRoute),
+    Listen("Listen", MihrayaIcons.Listen, MihrayaIcons.ListenFilled, ListenRoute),
+    Tasbih("Tasbih", MihrayaIcons.TasbihOutlined, MihrayaIcons.Tasbih, TasbihRoute),
+    More("More", MihrayaIcons.More, MihrayaIcons.MoreFilled, MoreRoute),
 }

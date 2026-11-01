@@ -28,7 +28,6 @@ sealed interface VerseSearch {
 class QuranViewModel(private val container: AppContainer) : ViewModel() {
 
     val query = MutableStateFlow("")
-    val tab = MutableStateFlow(0)
     val library: StateFlow<UserLibrary> = container.library.state
 
     val verseSearch: StateFlow<VerseSearch> = query

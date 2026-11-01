@@ -49,10 +49,11 @@ import java.time.ZonedDateTime
 private val destKey = ActionParameters.Key<String>(Destinations.EXTRA)
 private val surahKey = ActionParameters.Key<Int>(Destinations.SURAH)
 private val ayahKey = ActionParameters.Key<Int>(Destinations.AYAH)
+private val keepTasbihKey = ActionParameters.Key<Boolean>(Destinations.KEEP_TASBIH)
 
 @Composable
 private fun openMihraya(dest: String, surah: Int = 1, ayah: Int = 1) = actionStartActivity<MainActivity>(
-    actionParametersOf(destKey to dest, surahKey to surah, ayahKey to ayah),
+    actionParametersOf(destKey to dest, surahKey to surah, ayahKey to ayah, keepTasbihKey to (dest == Destinations.TASBIH)),
 )
 
 private data class PrayerRow(val name: String, val time: ZonedDateTime, val upcoming: Boolean)
@@ -394,46 +395,42 @@ private fun Countdown(remainingMs: Long, color: Color) {
 private suspend fun options(context: Context, id: GlanceId): WidgetOptions =
     WidgetPrefs.read(context, androidx.glance.appwidget.GlanceAppWidgetManager(context).getAppWidgetId(id))
 
-class PrayerTimetableReceiver : GlanceAppWidgetReceiver() {
+/** Removes a deleted widget's Mihraya options along with the state Glance keeps for it. */
+abstract class MihrayaWidgetReceiver : GlanceAppWidgetReceiver() {
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        super.onDeleted(context, appWidgetIds)
+        appWidgetIds.forEach { WidgetPrefs.clear(context, it) }
+    }
+}
+
+class PrayerTimetableReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = PrayerTimetableWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
 }
 
-class NextPrayerReceiver : GlanceAppWidgetReceiver() {
+class NextPrayerReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = NextPrayerWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
 }
 
-class QiblaReceiver : GlanceAppWidgetReceiver() {
+class QiblaReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = QiblaWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
 }
 
-class VerseReceiver : GlanceAppWidgetReceiver() {
+class VerseReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = VerseWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
 }
 
-class LastReadReceiver : GlanceAppWidgetReceiver() {
+class LastReadReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = LastReadWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
 }
 
-class BookmarksReceiver : GlanceAppWidgetReceiver() {
+class BookmarksReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = BookmarksWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
 }
 
-class AudioReceiver : GlanceAppWidgetReceiver() {
+class AudioReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = AudioWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
 }
 
-class TasbihReceiver : GlanceAppWidgetReceiver() {
+class TasbihReceiver : MihrayaWidgetReceiver() {
     override val glanceAppWidget = TasbihWidget()
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) = clear(context, appWidgetIds)
-}
-
-private fun clear(context: Context, ids: IntArray) {
-    ids.forEach { WidgetPrefs.clear(context, it) }
 }

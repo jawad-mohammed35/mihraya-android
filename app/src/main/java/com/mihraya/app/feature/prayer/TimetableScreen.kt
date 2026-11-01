@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -41,7 +43,7 @@ import com.mihraya.app.core.designsystem.components.CircleIconButton
 import com.mihraya.app.core.designsystem.components.EmptyState
 import com.mihraya.app.core.designsystem.components.GlassCard
 import com.mihraya.app.core.designsystem.components.HairlineDivider
-import com.mihraya.app.core.designsystem.components.SegmentedControl
+import com.mihraya.app.core.designsystem.components.PagerTabs
 import com.mihraya.app.core.designsystem.components.TopBar
 import com.mihraya.app.core.designsystem.icons.MihrayaIcons
 import com.mihraya.app.core.designsystem.theme.LocalUse24Hour
@@ -68,7 +70,7 @@ fun TimetableScreen(onBack: () -> Unit) {
     val settingsState by container.settings.state.collectAsStateWithLifecycle()
     val settings = settingsState ?: return
     val schedule = remember(settings.location, settings.prayer) { container.schedule(settings) }
-    var mode by rememberSaveable { mutableIntStateOf(0) }
+    val pager = rememberPagerState { 2 }
 
     Column(Modifier.fillMaxSize()) {
         TopBar("Prayer times", onBack = onBack, subtitle = settings.location?.displayName)
@@ -76,15 +78,21 @@ fun TimetableScreen(onBack: () -> Unit) {
             EmptyState(MihrayaIcons.Home, "No location yet", "Set your location to see the prayer timetable.")
             return@Column
         }
-        SegmentedControl(
+        PagerTabs(
             options = listOf("Day", "Month"),
-            selectedIndex = mode,
-            onSelect = { mode = it },
+            pager = pager,
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 8.dp)
                 .widthIn(max = 680.dp),
         )
-        if (mode == 0) DayView(schedule, settings) else MonthView(schedule, settings)
+        HorizontalPager(
+            state = pager,
+            beyondViewportPageCount = 1,
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier.fillMaxSize(),
+        ) { page ->
+            if (page == 0) DayView(schedule, settings) else MonthView(schedule, settings)
+        }
     }
 }
 

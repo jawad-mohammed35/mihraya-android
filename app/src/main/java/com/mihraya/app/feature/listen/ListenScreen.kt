@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -50,32 +52,37 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mihraya.app.core.designsystem.art.Artwork
+import com.mihraya.app.core.designsystem.components.CollapsingHeaderLayout
 import com.mihraya.app.core.designsystem.components.EmptyState
 import com.mihraya.app.core.designsystem.components.GlassCard
 import com.mihraya.app.core.designsystem.components.HairlineDivider
 import com.mihraya.app.core.designsystem.components.MihrayaDialog
+import com.mihraya.app.core.designsystem.components.PagerTabs
 import com.mihraya.app.core.designsystem.components.ScreenHeader
 import com.mihraya.app.core.designsystem.components.SecondaryButton
 import com.mihraya.app.core.designsystem.components.SectionLabel
-import com.mihraya.app.core.designsystem.components.SegmentedControl
 import com.mihraya.app.core.designsystem.components.StarBadge
+import com.mihraya.app.core.designsystem.components.fadeAbove
 import com.mihraya.app.core.designsystem.components.glass
+import com.mihraya.app.core.designsystem.components.rememberCollapsingHeaderState
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.util.TimeFormat
 import com.mihraya.app.data.audio.AudioDownloads
+import com.mihraya.app.data.audio.DownloadStatus
 import com.mihraya.app.data.audio.Reciter
 import com.mihraya.app.data.audio.Reciters
 import com.mihraya.app.data.quran.QuranMeta
+import com.mihraya.app.data.quran.Surah
 import com.mihraya.app.ui.LocalBottomInset
 import com.mihraya.app.ui.PlayPauseButton
 import com.mihraya.app.ui.mihrayaViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ListenScreen(scrollToTop: Int = 0, onOpenPlayer: () -> Unit, onOpenDownloads: () -> Unit) {
     val vm = mihrayaViewModel { ListenViewModel(it) }
     val reciter by vm.reciter.collectAsStateWithLifecycle()
-    val filter by vm.filter.collectAsStateWithLifecycle()
     val downloaded by vm.downloaded.collectAsStateWithLifecycle()
     val active by vm.active.collectAsStateWithLifecycle()
     val playback by vm.playback.collectAsStateWithLifecycle()
@@ -87,154 +94,136 @@ fun ListenScreen(scrollToTop: Int = 0, onOpenPlayer: () -> Unit, onOpenDownloads
     var confirmDelete by remember { mutableStateOf<Int?>(null) }
 
     val reciterDownloads = downloaded[reciter.id].orEmpty()
-    val surahs = if (filter == 1) QuranMeta.surahs.filter { it.number in reciterDownloads } else QuranMeta.surahs
-    val listState = rememberLazyListState()
+    val downloadedSurahs = remember(reciterDownloads) { QuranMeta.surahs.filter { it.number in reciterDownloads } }
+    val header = rememberCollapsingHeaderState()
+    val pager = rememberPagerState { 2 }
+    val lists = listOf(rememberLazyListState(), rememberLazyListState())
     LaunchedEffect(scrollToTop) {
-        if (scrollToTop > 0) listState.animateScrollToItem(0)
+        if (scrollToTop > 0) {
+            launch { header.expand() }
+            lists[pager.currentPage].animateScrollToItem(0)
+        }
+    }
+    val row: @Composable (Surah) -> Unit = { surah ->
+        ListenSurahRow(
+            surah = surah,
+            isCurrent = playback.reciterId == reciter.id && playback.surah == surah.number,
+            isPlaying = playback.isPlaying,
+            downloaded = surah.number in reciterDownloads,
+            status = active[AudioDownloads.key(reciter.id, surah.number)],
+            onPlay = { vm.play(reciter, surah.number) },
+            onDownload = { vm.download(reciter, surah.number) },
+            onCancel = { vm.cancel(reciter, surah.number) },
+            onDelete = { confirmDelete = surah.number },
+            modifier = item.padding(horizontal = 20.dp),
+        )
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        contentPadding = PaddingValues(bottom = LocalBottomInset.current + 16.dp),
-    ) {
-        item(key = "header") {
-            ScreenHeader("Listen", modifier = item.padding(horizontal = 20.dp))
-        }
+    CollapsingHeaderLayout(
+        state = header,
+        canScrollForward = { lists[pager.currentPage].canScrollForward },
+        header = {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                ScreenHeader("Listen", modifier = item.padding(horizontal = 20.dp))
 
-        item(key = "hero") {
-            val nowReciter = playback.reciter
-            val nowSurah = playback.surah
-            if (playback.hasMedia && nowReciter != null && nowSurah != null) {
-                NowPlayingCard(
-                    label = if (playback.isPlaying) "NOW PLAYING" else "PAUSED",
-                    reciter = nowReciter,
-                    surah = nowSurah,
-                    onClick = onOpenPlayer,
-                    trailing = { PlayPauseButton(playback, onToggle = { vm.play(nowReciter, nowSurah) }, size = 52, filledAccent = true) },
-                    modifier = item.padding(horizontal = 20.dp, vertical = 10.dp),
-                )
-            } else {
-                lastPlayed?.let { last ->
-                    val lastReciter = Reciters.byId(last.reciterId)
+                val nowReciter = playback.reciter
+                val nowSurah = playback.surah
+                if (playback.hasMedia && nowReciter != null && nowSurah != null) {
                     NowPlayingCard(
-                        label = "CONTINUE LISTENING",
-                        reciter = lastReciter,
-                        surah = last.surah,
-                        detail = if (last.positionMs > 0) "Resume at ${TimeFormat.media(last.positionMs)}" else null,
-                        onClick = { vm.resume(last) },
-                        trailing = { PlayPauseButton(playback, onToggle = { vm.resume(last) }, size = 52, filledAccent = true) },
+                        label = if (playback.isPlaying) "NOW PLAYING" else "PAUSED",
+                        reciter = nowReciter,
+                        surah = nowSurah,
+                        onClick = onOpenPlayer,
+                        trailing = { PlayPauseButton(playback, onToggle = { vm.play(nowReciter, nowSurah) }, size = 52, filledAccent = true) },
                         modifier = item.padding(horizontal = 20.dp, vertical = 10.dp),
                     )
-                }
-            }
-        }
-
-        item(key = "reciters") {
-            Column(item.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
-                SectionLabel("Reciter")
-                Spacer(Modifier.height(10.dp))
-                ReciterDropdown(selected = reciter, onSelect = vm::selectReciter)
-            }
-        }
-
-        item(key = "reciterDetail") {
-            Column(item.padding(horizontal = 20.dp, vertical = 18.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(reciter.name, style = Mihraya.type.title, color = colors.textPrimary)
-                        Text(
-                            "${reciter.style} · ${reciter.origin} · ${reciterDownloads.size}/114 offline",
-                            style = Mihraya.type.caption,
-                            color = colors.textTertiary,
+                } else {
+                    lastPlayed?.let { last ->
+                        val lastReciter = Reciters.byId(last.reciterId)
+                        NowPlayingCard(
+                            label = "CONTINUE LISTENING",
+                            reciter = lastReciter,
+                            surah = last.surah,
+                            detail = if (last.positionMs > 0) "Resume at ${TimeFormat.media(last.positionMs)}" else null,
+                            onClick = { vm.resume(last) },
+                            trailing = { PlayPauseButton(playback, onToggle = { vm.resume(last) }, size = 52, filledAccent = true) },
+                            modifier = item.padding(horizontal = 20.dp, vertical = 10.dp),
                         )
                     }
-                    Text(
-                        reciter.arabicName,
-                        style = Mihraya.type.body.copy(fontFamily = ArabicFonts.Amiri, fontSize = 18.sp, textDirection = TextDirection.Rtl),
-                        color = colors.accent,
-                    )
                 }
-                Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SecondaryButton(
-                        if (reciterDownloads.size == 114) "All downloaded" else "Download all",
-                        onClick = { confirmDownloadAll = true },
-                        icon = Icons.Rounded.Download,
-                        enabled = reciterDownloads.size < 114,
-                        modifier = Modifier.weight(1f),
-                    )
-                    SecondaryButton("Manage", onClick = onOpenDownloads, icon = Icons.Rounded.DownloadForOffline)
+
+                Column(item.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
+                    SectionLabel("Reciter")
+                    Spacer(Modifier.height(10.dp))
+                    ReciterDropdown(selected = reciter, onSelect = vm::selectReciter)
                 }
-                Spacer(Modifier.height(18.dp))
-                SegmentedControl(
-                    options = listOf("All sūrahs", "Downloaded"),
-                    selectedIndex = filter,
-                    onSelect = { vm.filter.value = it },
-                )
-            }
-        }
 
-        if (surahs.isEmpty()) {
-            item(key = "empty") {
-                EmptyState(
-                    icon = Icons.Rounded.DownloadForOffline,
-                    title = "Nothing downloaded yet",
-                    message = "Download sūrahs to listen without a connection. They're stored privately on this device.",
-                    modifier = item,
-                )
-            }
-        }
-
-        items(surahs, key = { "a${it.number}" }) { surah ->
-            val isCurrent = playback.reciterId == reciter.id && playback.surah == surah.number
-            Column(item.padding(horizontal = 20.dp)) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { vm.play(reciter, surah.number) }
-                        .heightIn(min = 66.dp)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    StarBadge(surah.number, highlighted = isCurrent)
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(item.padding(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(reciter.name, style = Mihraya.type.title, color = colors.textPrimary)
                             Text(
-                                surah.name,
-                                style = Mihraya.type.titleSmall,
-                                color = if (isCurrent) colors.accent else colors.textPrimary,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
+                                "${reciter.style} · ${reciter.origin} · ${reciterDownloads.size}/114 offline",
+                                style = Mihraya.type.caption,
+                                color = colors.textTertiary,
                             )
-                            if (isCurrent) {
-                                Spacer(Modifier.width(8.dp))
-                                EqualizerBars(playing = playback.isPlaying)
-                            }
                         }
                         Text(
-                            "${surah.meaning} · ${surah.verseCount} verses",
-                            style = Mihraya.type.caption,
-                            color = colors.textTertiary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            reciter.arabicName,
+                            style = Mihraya.type.body.copy(fontFamily = ArabicFonts.Amiri, fontSize = 18.sp, textDirection = TextDirection.Rtl),
+                            color = colors.accent,
                         )
                     }
-                    DownloadButton(
-                        downloaded = surah.number in reciterDownloads,
-                        status = active[AudioDownloads.key(reciter.id, surah.number)],
-                        onDownload = { vm.download(reciter, surah.number) },
-                        onCancel = { vm.cancel(reciter, surah.number) },
-                        onDelete = { confirmDelete = surah.number },
-                    )
+                    Spacer(Modifier.height(14.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        SecondaryButton(
+                            if (reciterDownloads.size == 114) "All downloaded" else "Download all",
+                            onClick = { confirmDownloadAll = true },
+                            icon = Icons.Rounded.Download,
+                            enabled = reciterDownloads.size < 114,
+                            modifier = Modifier.weight(1f),
+                        )
+                        SecondaryButton("Manage", onClick = onOpenDownloads, icon = Icons.Rounded.DownloadForOffline)
+                    }
                 }
-                HairlineDivider(startIndent = 54.dp)
             }
-        }
-    }
+        },
+        pinned = {
+            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                PagerTabs(listOf("Sūrahs", "Downloaded"), pager, item)
+            }
+        },
+        body = {
+            HorizontalPager(
+                state = pager,
+                beyondViewportPageCount = 1,
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.fillMaxSize().fadeAbove(top = 8.dp, fade = 8.dp),
+            ) { page ->
+                LazyColumn(
+                    state = lists[page],
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    contentPadding = PaddingValues(top = 4.dp, bottom = LocalBottomInset.current + 16.dp),
+                ) {
+                    if (page == 0) {
+                        items(QuranMeta.surahs, key = { "a${it.number}" }) { row(it) }
+                    } else if (downloadedSurahs.isEmpty()) {
+                        item(key = "empty") {
+                            EmptyState(
+                                icon = Icons.Rounded.DownloadForOffline,
+                                title = "Nothing downloaded yet",
+                                message = "Download sūrahs to listen without a connection. They're stored privately on this device.",
+                                modifier = item,
+                            )
+                        }
+                    } else {
+                        items(downloadedSurahs, key = { "d${it.number}" }) { row(it) }
+                    }
+                }
+            }
+        },
+    )
 
     if (confirmDownloadAll) {
         MihrayaDialog(
@@ -261,6 +250,66 @@ fun ListenScreen(scrollToTop: Int = 0, onOpenPlayer: () -> Unit, onOpenDownloads
                 vm.delete(reciter, number)
             },
         )
+    }
+}
+
+@Composable
+private fun ListenSurahRow(
+    surah: Surah,
+    isCurrent: Boolean,
+    isPlaying: Boolean,
+    downloaded: Boolean,
+    status: DownloadStatus?,
+    onPlay: () -> Unit,
+    onDownload: () -> Unit,
+    onCancel: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = Mihraya.colors
+    Column(modifier) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onPlay)
+                .heightIn(min = 66.dp)
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            StarBadge(surah.number, highlighted = isCurrent)
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        surah.name,
+                        style = Mihraya.type.titleSmall,
+                        color = if (isCurrent) colors.accent else colors.textPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    if (isCurrent) {
+                        Spacer(Modifier.width(8.dp))
+                        EqualizerBars(playing = isPlaying)
+                    }
+                }
+                Text(
+                    "${surah.meaning} · ${surah.verseCount} verses",
+                    style = Mihraya.type.caption,
+                    color = colors.textTertiary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            DownloadButton(
+                downloaded = downloaded,
+                status = status,
+                onDownload = onDownload,
+                onCancel = onCancel,
+                onDelete = onDelete,
+            )
+        }
+        HairlineDivider(startIndent = 54.dp)
     }
 }
 

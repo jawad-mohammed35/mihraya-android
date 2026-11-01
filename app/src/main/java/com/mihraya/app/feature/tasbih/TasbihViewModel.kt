@@ -25,7 +25,7 @@ enum class TapFeedback { Tick, Milestone, Completed }
 class TasbihViewModel(private val container: AppContainer) : ViewModel() {
 
     private val library = container.library
-    private val _state = MutableStateFlow(library.state.value.tasbih)
+    private val _state = MutableStateFlow(if (library.freshTasbihPending) TasbihState() else library.state.value.tasbih)
     val state: StateFlow<TasbihState> = _state.asStateFlow()
     private var touched = false
     private var lastSaved = library.state.value.tasbih
@@ -40,10 +40,12 @@ class TasbihViewModel(private val container: AppContainer) : ViewModel() {
 
     init {
         viewModelScope.launch {
+            library.awaitFreshTasbih()
             val stored = library.current().tasbih
-            if (!touched) _state.value = stored
-        }
-        viewModelScope.launch {
+            if (!touched) {
+                _state.value = stored
+                lastSaved = stored
+            }
             library.flow.map { it.tasbih }.collect { stored ->
                 if (stored != _state.value && stored != lastSaved) {
                     touched = false

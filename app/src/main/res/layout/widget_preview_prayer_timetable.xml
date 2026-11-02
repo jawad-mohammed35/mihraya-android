@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/WidgetPreviewRoot"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText">
+
+    <TextView style="@style/WidgetPreviewTitle" android:text="Prayer times" />
+
+    <LinearLayout style="@style/WidgetPreviewRow">
+        <TextView style="@style/WidgetPreviewName" android:text="Fajr" />
+        <TextView style="@style/WidgetPreviewTime" android:text="5:12 AM" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow">
+        <TextView style="@style/WidgetPreviewName" android:text="Dhuhr" />
+        <TextView style="@style/WidgetPreviewTime" android:text="12:17 PM" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow">
+        <TextView
+            style="@style/WidgetPreviewName"
+            android:text="Asr"
+            android:textColor="#DCC394"
+            android:textStyle="bold" />
+        <TextView
+            style="@style/WidgetPreviewTime"
+            android:text="3:10 PM"
+            android:textColor="#DCC394" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow">
+        <TextView style="@style/WidgetPreviewName" android:text="Maghrib" />
+        <TextView style="@style/WidgetPreviewTime" android:text="5:33 PM" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow">
+        <TextView style="@style/WidgetPreviewName" android:text="Isha" />
+        <TextView style="@style/WidgetPreviewTime" android:text="6:57 PM" />
+    </LinearLayout>
+</LinearLayout>

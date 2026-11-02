@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/WidgetPreviewRoot"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText">
+
+    <TextView style="@style/WidgetPreviewTitle" android:text="Bookmarks" />
+
+    <LinearLayout style="@style/WidgetPreviewRow" android:layout_height="36dp" android:layout_weight="0">
+        <TextView style="@style/WidgetPreviewName" android:text="Al-Baqarah" android:textSize="15sp" />
+        <TextView style="@style/WidgetPreviewTime" android:text="2:255" android:textColor="#DCC394" android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow" android:layout_height="36dp" android:layout_weight="0">
+        <TextView style="@style/WidgetPreviewName" android:text="Yā-Sīn" android:textSize="15sp" />
+        <TextView style="@style/WidgetPreviewTime" android:text="36:58" android:textColor="#DCC394" android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow" android:layout_height="36dp" android:layout_weight="0">
+        <TextView style="@style/WidgetPreviewName" android:text="Al-Mulk" android:textSize="15sp" />
+        <TextView style="@style/WidgetPreviewTime" android:text="67:1" android:textColor="#DCC394" android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow" android:layout_height="36dp" android:layout_weight="0">
+        <TextView style="@style/WidgetPreviewName" android:text="Al-Kahf" android:textSize="15sp" />
+        <TextView style="@style/WidgetPreviewTime" android:text="18:10" android:textColor="#DCC394" android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/WidgetPreviewRow" android:layout_height="36dp" android:layout_weight="0">
+        <TextView style="@style/WidgetPreviewName" android:text="Ar-Rahman" android:textSize="15sp" />
+        <TextView style="@style/WidgetPreviewTime" android:text="55:13" android:textColor="#DCC394" android:textSize="13sp" />
+    </LinearLayout>
+</LinearLayout>

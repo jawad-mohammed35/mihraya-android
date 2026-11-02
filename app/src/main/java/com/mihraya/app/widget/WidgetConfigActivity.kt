@@ -5,11 +5,15 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -41,6 +45,7 @@ class WidgetConfigActivity : ComponentActivity() {
         }
         val provider = AppWidgetManager.getInstance(this).getAppWidgetInfo(widgetId)?.provider?.className.orEmpty()
         val initial = WidgetPrefs.read(this, widgetId)
+        val configured = WidgetPrefs.exists(this, widgetId)
 
         setContent {
             val settings by appContainer.settings.state.collectAsStateWithLifecycle()
@@ -63,6 +68,8 @@ class WidgetConfigActivity : ComponentActivity() {
                 Column(
                     Modifier
                         .fillMaxSize()
+                        .background(colors.background)
+                        .windowInsetsPadding(WindowInsets.safeDrawing)
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 20.dp, vertical = 28.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -99,7 +106,7 @@ class WidgetConfigActivity : ComponentActivity() {
                         }
                     }
                     PrimaryButton(
-                        "Add widget",
+                        if (configured) "Save" else "Add widget",
                         onClick = {
                             WidgetPrefs.write(
                                 this@WidgetConfigActivity,
@@ -113,7 +120,7 @@ class WidgetConfigActivity : ComponentActivity() {
                                     showTranslation = translation,
                                 ),
                             )
-                            WidgetRefresh.refresh(this@WidgetConfigActivity)
+                            WidgetRefresh.refresh(this@WidgetConfigActivity, widgetId)
                             setResult(
                                 RESULT_OK,
                                 Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId),

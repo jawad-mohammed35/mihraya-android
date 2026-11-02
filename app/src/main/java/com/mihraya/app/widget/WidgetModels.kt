@@ -44,6 +44,9 @@ object WidgetPrefs {
             .apply()
     }
 
+    fun exists(context: Context, widgetId: Int): Boolean =
+        context.getSharedPreferences(FILE, Context.MODE_PRIVATE).contains(key(widgetId, "theme"))
+
     fun clear(context: Context, widgetId: Int) {
         val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         val editor = prefs.edit()

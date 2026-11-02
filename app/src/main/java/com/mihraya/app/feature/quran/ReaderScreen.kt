@@ -352,6 +352,7 @@ private fun ReaderTopBar(
     onPreferences: () -> Unit,
 ) {
     val colors = Mihraya.colors
+    val shape = RoundedCornerShape(26.dp)
     Box(
         Modifier
             .windowInsetsPadding(WindowInsets.topChrome)
@@ -363,7 +364,10 @@ private fun ReaderTopBar(
         Column(
             Modifier
                 .fillMaxWidth()
-                .frosted(haze, RoundedCornerShape(26.dp)),
+                .clip(shape)
+                // Haze draws nothing over the verses when the bar slides back in, so the bar keeps its own surface.
+                .background(colors.surfaceRaised.copy(alpha = 0.97f))
+                .frosted(haze, shape),
         ) {
             Row(
                 Modifier

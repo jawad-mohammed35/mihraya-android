@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/WidgetPreviewRoot"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/WidgetPreviewTitle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Tasbih" />
+
+        <TextView style="@style/WidgetPreviewAction" android:text="Open" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView style="@style/WidgetPreviewHeadline" android:text="12" android:textSize="40sp" />
+
+        <TextView style="@style/WidgetPreviewMuted" android:text="of 33" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/WidgetPreviewAction"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="Target 33" />
+
+        <TextView style="@style/WidgetPreviewAction" android:text="Reset" android:textColor="#B7B3AA" />
+    </LinearLayout>
+</LinearLayout>

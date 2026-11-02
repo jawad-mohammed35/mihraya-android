@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -35,15 +37,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
@@ -346,11 +351,18 @@ private fun ReciterDropdown(selected: Reciter, onSelect: (Reciter) -> Unit) {
     val colors = Mihraya.colors
     val density = LocalDensity.current
     var expanded by remember { mutableStateOf(false) }
-    var anchorWidth by remember { mutableIntStateOf(0) }
+    var anchorCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val chevron by animateFloatAsState(if (expanded) 180f else 0f, tween(220), label = "chevron")
     val shape = RoundedCornerShape(22.dp)
+    val anchor = if (expanded) anchorCoordinates?.takeIf { it.isAttached }?.boundsInWindow() ?: Rect.Zero else Rect.Zero
+    val windowHeight = LocalView.current.rootView.height
+    val safeArea = WindowInsets.safeDrawing
+    val menuMargin = with(density) { 12.dp.toPx() }
+    val spaceBelow = windowHeight - safeArea.getBottom(density) - anchor.bottom - menuMargin
+    val spaceAbove = anchor.top - safeArea.getTop(density) - menuMargin
+    val menuMaxHeight = with(density) { maxOf(spaceBelow, spaceAbove).toDp() }.coerceAtLeast(160.dp)
 
-    Box(Modifier.fillMaxWidth().onSizeChanged { anchorWidth = it.width }) {
+    Box(Modifier.fillMaxWidth().onGloballyPositioned { anchorCoordinates = it }) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -379,7 +391,9 @@ private fun ReciterDropdown(selected: Reciter, onSelect: (Reciter) -> Unit) {
             containerColor = colors.surfaceRaised,
             border = BorderStroke(1.dp, colors.glassBorder),
             shadowElevation = 12.dp,
-            modifier = Modifier.width(with(density) { anchorWidth.toDp() }),
+            modifier = Modifier
+                .width(with(density) { anchor.width.toDp() })
+                .heightIn(max = menuMaxHeight),
         ) {
             Reciters.all.forEachIndexed { index, option ->
                 if (index > 0) HairlineDivider(Modifier.padding(horizontal = 16.dp))

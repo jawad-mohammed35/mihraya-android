@@ -39,7 +39,7 @@ class TasbihCountAction : ActionCallback {
         }
         if (saved.tasbih.rounds == before.rounds + 1 && context.appContainer.settings.current().haptics) vibrateGoal(context)
         WidgetPrefs.write(context, widgetId(context, glanceId), WidgetPrefs.read(context, widgetId(context, glanceId)).copy(confirmReset = false))
-        TasbihWidget().update(context, glanceId)
+        TasbihWidget().redraw(context, glanceId)
     }
 }
 
@@ -52,7 +52,7 @@ class TasbihTargetAction : ActionCallback {
             val nextTarget = order.getOrNull(order.indexOf(state.target) + 1) ?: order.first()
             current.copy(tasbih = state.copy(target = nextTarget, count = state.count.coerceAtMost(nextTarget)))
         }
-        TasbihWidget().update(context, glanceId)
+        TasbihWidget().redraw(context, glanceId)
     }
 }
 
@@ -77,7 +77,7 @@ class TasbihResetAction : ActionCallback {
             }
             WidgetPrefs.write(context, id, options.copy(confirmReset = false))
         }
-        TasbihWidget().update(context, glanceId)
+        TasbihWidget().redraw(context, glanceId)
     }
 }
 
@@ -93,7 +93,7 @@ class ToggleAudioAction : ActionCallback {
             )
         }
         kotlinx.coroutines.delay(350)
-        AudioWidget().update(context, glanceId)
+        AudioWidget().redraw(context, glanceId)
     }
 }
 

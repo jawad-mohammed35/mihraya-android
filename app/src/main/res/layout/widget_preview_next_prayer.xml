@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/WidgetPreviewRoot"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText,UselessLeaf">
+
+    <TextView style="@style/WidgetPreviewTitle" android:text="Next prayer" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView style="@style/WidgetPreviewHeadline" android:text="Asr" android:textSize="26sp" />
+
+    <TextView style="@style/WidgetPreviewMuted" android:text="3:10 PM" android:textSize="14sp" />
+
+    <TextView
+        style="@style/WidgetPreviewHeadline"
+        android:layout_marginTop="4dp"
+        android:text="1:24:05"
+        android:textStyle="normal" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

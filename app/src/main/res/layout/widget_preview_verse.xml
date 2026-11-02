@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/WidgetPreviewRoot"
+    android:orientation="vertical"
+    tools:ignore="HardcodedText,UselessLeaf">
+
+    <TextView style="@style/WidgetPreviewTitle" android:text="Verse of the day" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:maxLines="2"
+        android:text="فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا"
+        android:textColor="#F3F1EC"
+        android:textDirection="anyRtl"
+        android:textSize="19sp" />
+
+    <TextView
+        style="@style/WidgetPreviewMuted"
+        android:layout_marginTop="4dp"
+        android:text="For indeed, with hardship will be ease." />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView style="@style/WidgetPreviewAction" android:text="Ash-Sharh 94:5" />
+</LinearLayout>

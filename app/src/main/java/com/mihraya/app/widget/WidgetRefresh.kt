@@ -60,13 +60,17 @@ object WidgetRefresh {
         TasbihReceiver::class.java.name to TasbihWidget(),
     )
 
-    fun refresh(context: Context) {
+    fun refresh(context: Context, systemOnly: Boolean = false) {
         val app = context.applicationContext
         scope.launch {
             val manager = GlanceAppWidgetManager(app)
             widgets.values.forEach { widget ->
                 runCatching {
-                    manager.getGlanceIds(widget.javaClass).forEach { id -> widget.redraw(app, id) }
+                    manager.getGlanceIds(widget.javaClass).forEach { id ->
+                        if (!systemOnly || WidgetPrefs.read(app, manager.getAppWidgetId(id)).theme == WidgetTheme.System) {
+                            widget.redraw(app, id)
+                        }
+                    }
                 }
             }
         }

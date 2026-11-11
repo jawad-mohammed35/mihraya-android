@@ -82,7 +82,9 @@ import com.mihraya.app.feature.tasbih.TasbihScreen
 import com.mihraya.app.feature.welcome.WelcomeScreen
 import com.mihraya.app.widget.Destinations
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.mihraya.app.core.designsystem.components.glassBackdrop
+import androidx.compose.foundation.layout.windowInsetsPadding
+import com.mihraya.app.core.designsystem.components.sideChrome
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 
@@ -180,25 +182,27 @@ fun MihrayaRoot(
             .fillMaxSize()
             .background(colors.background),
     ) {
-        if (glow > 0f) AmbientGlow(Modifier.graphicsLayer { alpha = glow })
-        CompositionLocalProvider(LocalBottomInset provides bottomInset) {
-            MihrayaNavHost(
-                navController = navController,
-                openPlayer = { playerExpanded = true },
-                quranScroll = quranScroll,
-                listenScroll = listenScroll,
-                instantEntryId = { instantEntryId },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .fadeAbove(topInset)
-                    .hazeSource(hazeState),
-            )
+        Box(Modifier.fillMaxSize().glassBackdrop(hazeState)) {
+            if (glow > 0f) AmbientGlow(Modifier.graphicsLayer { alpha = glow })
+            CompositionLocalProvider(LocalBottomInset provides bottomInset) {
+                MihrayaNavHost(
+                    navController = navController,
+                    openPlayer = { playerExpanded = true },
+                    quranScroll = quranScroll,
+                    listenScroll = listenScroll,
+                    instantEntryId = { instantEntryId },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .fadeAbove(topInset),
+                )
+            }
         }
 
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.sideChrome)
                 .navigationBarsPadding()
                 .padding(bottom = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

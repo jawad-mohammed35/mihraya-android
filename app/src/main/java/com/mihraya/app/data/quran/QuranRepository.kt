@@ -114,10 +114,10 @@ class QuranRepository(
 
     private fun read(name: String): Array<String> {
         val local = File(dir, "$name.txt")
-        val stream = if (local.exists()) local.inputStream() else context.assets.open("quran/$name.txt")
+        val stream = if (name != INDOPAK && name != UTHMANI && local.exists()) local.inputStream() else context.assets.open("quran/$name.txt")
         val lines = stream.bufferedReader(Charsets.UTF_8).use { it.readLines() }
         check(lines.size == QuranMeta.VERSE_COUNT) { "Edition $name is incomplete" }
-        return if (name == INDOPAK) lines.map(IndoPakText::normalize).toTypedArray() else lines.toTypedArray()
+        return if (name == INDOPAK) lines.mapIndexed(IndoPakText::verse).toTypedArray() else lines.toTypedArray()
     }
 
     private fun scriptEdition(script: QuranScript): String = when (script) {
@@ -200,7 +200,9 @@ class QuranRepository(
         editions.remove(TAJWEED)
     }
 
-    suspend fun bismillah(script: QuranScript): String = edition(scriptEdition(script))[0]
+    suspend fun bismillah(script: QuranScript): String = edition(scriptEdition(script))[0].let { first ->
+        if (script == QuranScript.IndoPak) first.substringBeforeLast(' ') else first
+    }
 
     suspend fun verse(ref: VerseRef, script: QuranScript, translationId: Int): Verse {
         val index = QuranMeta.verseId(ref.surah, ref.ayah) - 1

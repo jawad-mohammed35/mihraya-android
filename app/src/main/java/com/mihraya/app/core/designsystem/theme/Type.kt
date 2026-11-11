@@ -41,9 +41,9 @@ object ArabicFonts {
     )
     val Nastaliq = FontFamily(Font(R.font.noto_nastaliq_urdu))
 
-    /** Amiri Quran lacks the Urdu letter forms used by the IndoPak script, so regular Amiri stands in for it there. */
-    fun quran(font: ArabicFont, script: QuranScript): FontFamily = when (font) {
-        ArabicFont.AmiriQuran -> if (script == QuranScript.IndoPak) Amiri else AmiriQuran
+    val IndoPak = FontFamily(Font(R.font.indopak_quranwbw))
+    fun quran(font: ArabicFont, script: QuranScript): FontFamily = if (script == QuranScript.IndoPak) IndoPak else when (font) {
+        ArabicFont.AmiriQuran -> AmiriQuran
         ArabicFont.Scheherazade -> Scheherazade
         ArabicFont.NotoNaskh -> NotoNaskh
     }

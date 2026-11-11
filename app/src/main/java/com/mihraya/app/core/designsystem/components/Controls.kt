@@ -622,7 +622,8 @@ fun MihrayaDialog(
     val colors = Mihraya.colors
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = colors.surfaceRaised,
+        modifier = Modifier.glass(RoundedCornerShape(28.dp), colors, colors.surfaceRaised.copy(alpha = 0.96f)),
+        containerColor = Color.Transparent,
         shape = RoundedCornerShape(28.dp),
         title = { Text(title, style = Mihraya.type.title, color = colors.textPrimary) },
         text = {

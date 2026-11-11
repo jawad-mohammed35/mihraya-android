@@ -275,7 +275,8 @@ fun MihrayaSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = colors.surfaceRaised,
+        modifier = Modifier.glass(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp), colors, colors.surfaceRaised.copy(alpha = 0.97f)),
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         contentColor = colors.textPrimary,
         shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
         dragHandle = {

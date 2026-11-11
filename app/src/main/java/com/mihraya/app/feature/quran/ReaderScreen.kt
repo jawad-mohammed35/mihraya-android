@@ -111,7 +111,7 @@ import com.mihraya.app.feature.home.ProgressLine
 import com.mihraya.app.ui.LocalBottomInset
 import com.mihraya.app.ui.mihrayaViewModel
 import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeSource
+import com.mihraya.app.core.designsystem.components.glassBackdrop
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -200,7 +200,7 @@ fun ReaderScreen(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .hazeSource(haze)
+                    .glassBackdrop(haze)
                     .windowInsetsPadding(WindowInsets.sideChrome)
                     .nestedScroll(hideOnScroll),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -541,7 +541,7 @@ internal fun VerseBody(verse: Verse, prefs: ReaderPreferences, includeTranslatio
         Text(colored, style = quranStyle(prefs), modifier = Modifier.fillMaxWidth())
     } else {
         Text(
-            verse.arabic + " " + marker,
+            if (prefs.script == QuranScript.IndoPak) verse.arabic else verse.arabic + " " + marker,
             style = quranStyle(prefs),
             color = colors.textPrimary,
             modifier = Modifier.fillMaxWidth(),
@@ -611,8 +611,10 @@ private fun ContinuousParagraph(
                         append(verse.arabic)
                     }
                 }
-                append(" ")
-                withStyle(SpanStyle(color = colors.accent)) { append(ayahMarker(verse.ayah, prefs.script)) }
+                if (prefs.script == QuranScript.Uthmani) {
+                    append(" ")
+                    withStyle(SpanStyle(color = colors.accent)) { append(ayahMarker(verse.ayah, prefs.script)) }
+                }
                 append(" ")
             }
         }

@@ -38,7 +38,7 @@ import com.mihraya.app.core.designsystem.theme.Mihraya
 private data class Credit(val title: String, val detail: String, val url: String)
 
 private val contentSources = listOf(
-    Credit("Quran text", "Uthmani and IndoPak scripts, via the Quran.com API (Quran Foundation)", "https://quran.com"),
+    Credit("Quran text", "Uthmani script, via the Quran.com API (Quran Foundation)", "https://quran.com"),
     Credit("Translations", "Saheeh International, Jalandhari, transliteration and downloadable editions, via the Quran.com API", "https://api-docs.quran.foundation"),
     Credit("Recitations", "Streamed and downloaded from the mp3quran.net library", "https://mp3quran.net"),
     Credit("Prayer times", "Adhan by Batoul Apps · MIT licence", "https://github.com/batoulapps/adhan-java"),
@@ -57,6 +57,7 @@ private val adhanCredits = listOf(
 )
 
 private val mediaCredits = listOf(
+    Credit("IndoPak text and font", "Ayman Siddiqui and R. Siddiqua for QuranWBW.com and Quran.com", "https://github.com/marwan/indopak-quran-text"),
     Credit("Fonts", "Manrope, Amiri, Amiri Quran, Scheherazade New, Noto Naskh Arabic, Noto Nastaliq Urdu · SIL Open Font Licence 1.1", "https://fonts.google.com"),
 )
 

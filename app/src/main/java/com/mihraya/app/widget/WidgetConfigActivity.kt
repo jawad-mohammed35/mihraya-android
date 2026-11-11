@@ -79,7 +79,7 @@ class WidgetConfigActivity : ComponentActivity() {
                         SectionLabel("Appearance")
                         androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 8.dp))
                         SegmentedControl(
-                            options = listOf("Dark", "Light", "Transparent"),
+                            options = listOf("Dark", "Light", "Transparent", "System"),
                             selectedIndex = WidgetTheme.entries.indexOfFirst { it.name == theme }.coerceAtLeast(0),
                             onSelect = { theme = WidgetTheme.entries[it].name },
                         )

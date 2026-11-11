@@ -2,7 +2,7 @@ package com.mihraya.app.widget
 
 import android.content.Context
 
-enum class WidgetTheme { Dark, Light, Glass }
+enum class WidgetTheme { Dark, Light, Glass, System }
 
 enum class TimetableLayout { Vertical, Horizontal }
 

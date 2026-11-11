@@ -103,8 +103,9 @@ fun ListenScreen(scrollToTop: Int = 0, onOpenPlayer: () -> Unit, onOpenDownloads
     val header = rememberCollapsingHeaderState()
     val pager = rememberPagerState { 2 }
     val lists = listOf(rememberLazyListState(), rememberLazyListState())
+    val initialReselect = remember { scrollToTop }
     LaunchedEffect(scrollToTop) {
-        if (scrollToTop > 0) {
+        if (scrollToTop != initialReselect) {
             launch { header.expand() }
             lists[pager.currentPage].animateScrollToItem(0)
         }
@@ -388,7 +389,7 @@ private fun ReciterDropdown(selected: Reciter, onSelect: (Reciter) -> Unit) {
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(22.dp),
-            containerColor = colors.surfaceRaised,
+            containerColor = colors.surfaceRaised.copy(alpha = 0.97f),
             border = BorderStroke(1.dp, colors.glassBorder),
             shadowElevation = 12.dp,
             modifier = Modifier

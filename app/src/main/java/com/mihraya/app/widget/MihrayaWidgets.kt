@@ -5,7 +5,6 @@ import android.os.SystemClock
 import android.util.TypedValue
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
@@ -138,7 +137,7 @@ class PrayerTimetableWidget : GlanceAppWidget() {
             options to runCatching { board(context, options) }.getOrNull()
         }) { (options, board) ->
             val colors = options.theme.colors()
-            WidgetFrame(options.theme, openMihraya(Destinations.TIMETABLE)) {
+            WidgetFrame(colors, openMihraya(Destinations.TIMETABLE)) {
                 if (board == null) {
                     EmptyState("Prayer times", "Set your location in Mihraya.", colors)
                 } else {
@@ -244,7 +243,7 @@ private fun ColumnScope.NextPrayerLine(board: PrayerBoard, colors: WidgetColors,
         Text(TimeFormat.full(next.time, board.use24Hour), style = colors.style(14, color = colors.muted), maxLines = 1)
         if (countdown && inner.width >= 200.dp) {
             Spacer(GlanceModifier.defaultWeight())
-            Countdown(java.time.Duration.between(board.now, next.time).toMillis(), colors.text, 18)
+            Countdown(java.time.Duration.between(board.now, next.time).toMillis(), colors, 18)
         }
     }
 }
@@ -260,7 +259,7 @@ class NextPrayerWidget : GlanceAppWidget() {
             WidgetPrefs.read(context, widgetId) to runCatching { board(context, WidgetOptions()) }.getOrNull()
         }) { (options, board) ->
             val colors = options.theme.colors()
-            WidgetFrame(options.theme, openMihraya(Destinations.TIMETABLE)) {
+            WidgetFrame(colors, openMihraya(Destinations.TIMETABLE)) {
                 val next = board?.next
                 val inner = innerSize()
                 when {
@@ -279,7 +278,7 @@ class NextPrayerWidget : GlanceAppWidget() {
                             Spacer(GlanceModifier.height(4.dp))
                             Countdown(
                                 java.time.Duration.between(board.now, next.time).toMillis(),
-                                colors.text,
+                                colors,
                                 if (large) 30 else if (inner.height >= 100.dp) 24 else 20,
                             )
                         }
@@ -311,7 +310,7 @@ class QiblaWidget : GlanceAppWidget() {
             WidgetPrefs.read(context, widgetId) to runCatching { qiblaPlace(context) }.getOrNull()
         }) { (options, place) ->
             val colors = options.theme.colors()
-            WidgetFrame(options.theme, openMihraya(Destinations.QIBLA)) {
+            WidgetFrame(colors, openMihraya(Destinations.QIBLA)) {
                 val inner = innerSize()
                 val tiny = inner.width < 90.dp || inner.height < 60.dp
                 Box(GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -384,7 +383,7 @@ class VerseWidget : GlanceAppWidget() {
             val colors = options.theme.colors()
             val surah = verse?.second?.number ?: 1
             val ayah = verse?.first?.ayah ?: 1
-            WidgetFrame(options.theme, openMihraya(Destinations.READER, surah, ayah)) {
+            WidgetFrame(colors, openMihraya(Destinations.READER, surah, ayah)) {
                 if (verse == null) {
                     EmptyState("Verse of the day", "Open Mihraya to load the verse.", colors)
                 } else {
@@ -445,7 +444,7 @@ class LastReadWidget : GlanceAppWidget() {
             val colors = options.theme.colors()
             val surah = position?.surah ?: 1
             val ayah = position?.ayah ?: 1
-            WidgetFrame(options.theme, openMihraya(Destinations.READER, surah, ayah)) {
+            WidgetFrame(colors, openMihraya(Destinations.READER, surah, ayah)) {
                 if (position == null) {
                     EmptyState("Continue reading", "Open a sūrah in Mihraya.", colors)
                 } else {
@@ -484,8 +483,8 @@ class LastReadWidget : GlanceAppWidget() {
                             LinearProgressIndicator(
                                 progress = position.ayah.toFloat() / info.verseCount,
                                 modifier = GlanceModifier.fillMaxWidth().height(4.dp),
-                                color = ColorProvider(colors.accent),
-                                backgroundColor = ColorProvider(colors.chip),
+                                color = colors.accent,
+                                backgroundColor = colors.chip,
                             )
                         }
                     }
@@ -507,7 +506,7 @@ class BookmarksWidget : GlanceAppWidget() {
                 runCatching { context.appContainer.library.current().bookmarks }.getOrDefault(emptyList())
         }) { (options, bookmarks) ->
             val colors = options.theme.colors()
-            WidgetFrame(options.theme, openMihraya(Destinations.QURAN)) {
+            WidgetFrame(colors, openMihraya(Destinations.QURAN)) {
                 val inner = innerSize()
                 if (bookmarks.isEmpty()) {
                     EmptyState("Bookmarks", "Save a verse while reading and it will appear here.", colors)
@@ -566,7 +565,7 @@ class AudioWidget : GlanceAppWidget() {
             val label = if (playing) "Pause" else "Play"
             val surah = last?.let { QuranMeta.surah(it.surah).name } ?: "Nothing played yet"
             val detail = last?.let { "${Reciters.byId(it.reciterId).shortName} · ${TimeFormat.media(it.positionMs)}" }
-            WidgetFrame(options.theme, openMihraya(Destinations.PLAYER)) {
+            WidgetFrame(colors, openMihraya(Destinations.PLAYER)) {
                 when {
                     inner.width < 130.dp && inner.height < 100.dp -> Box(
                         GlanceModifier.fillMaxSize(),
@@ -622,7 +621,7 @@ class TasbihWidget : GlanceAppWidget() {
             )
         }) { (options, tasbih, dhikr) ->
             val colors = options.theme.colors()
-            WidgetFrame(options.theme) {
+            WidgetFrame(colors) {
                 if (tasbih == null) {
                     EmptyState("Tasbih", "Open Mihraya to start counting.", colors)
                 } else {
@@ -706,7 +705,7 @@ private fun ColumnScope.TasbihContent(
 }
 
 @Composable
-private fun SmallAction(text: String, color: Color, colors: WidgetColors, onClick: androidx.glance.action.Action) {
+private fun SmallAction(text: String, color: ColorProvider, colors: WidgetColors, onClick: androidx.glance.action.Action) {
     Box(
         GlanceModifier.height(36.dp).padding(horizontal = 6.dp).clickable(onClick),
         contentAlignment = Alignment.Center,
@@ -716,13 +715,15 @@ private fun SmallAction(text: String, color: Color, colors: WidgetColors, onClic
 }
 
 @Composable
-private fun Countdown(remainingMs: Long, color: Color, textSize: Int) {
+private fun Countdown(remainingMs: Long, colors: WidgetColors, textSize: Int) {
     if (remainingMs <= 0L) return
     val context = LocalContext.current
     AndroidRemoteViews(
         modifier = GlanceModifier.wrapContentWidth().height((textSize * 1.5f).dp),
         remoteViews = RemoteViews(context.packageName, R.layout.widget_countdown).apply {
-            setTextColor(R.id.countdown, color.toArgb())
+            if (!colors.system) {
+                setTextColor(R.id.countdown, colors.text.getColor(context).toArgb())
+            }
             setTextViewTextSize(R.id.countdown, TypedValue.COMPLEX_UNIT_SP, textSize.toFloat())
             setChronometerCountDown(R.id.countdown, true)
             setChronometer(R.id.countdown, SystemClock.elapsedRealtime() + remainingMs, null, true)

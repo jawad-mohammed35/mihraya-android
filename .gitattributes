@@ -5,3 +5,5 @@
 *.mp3 binary
 *.ogg binary
 *.png binary
+# Preserve the publisher's keyed verse file byte for byte.
+app/src/main/assets/quran/indopak.txt -text

@@ -1,14 +1,14 @@
 # Mihraya
 
-Prayer times, Quran, recitation, Qibla, and Tasbih for Android. The interface is built for a pure-black OLED screen.
+Prayer times, Quran, recitation, Qibla, and Tasbih for Android. The floating Liquid Glass bar blurs scrolling content on supported devices. Tap a tab or slide across the bar and release to switch sections. A moving lens previews your selection.
 
 ## Features
 
 - **Prayer times** calculated on the device, with Adhan or tone alerts, a day and month timetable, and Hijri dates.
-- **Quran reader** in Uthmani or IndoPak script, with translations, transliteration, optional tajweed colors, bookmarks, and search by sūrah, verse, or word.
+- **Quran reader** with offline Uthmani and QuranWBW IndoPak Madinah editions. IndoPak uses its matching typeface, pause marks, and verse markers. Switch scripts while keeping your translations, bookmarks, and reading position. The reader also supports transliteration, search, and optional Uthmani tajweed colors.
 - **Recitation** from 17 reciters, streamed or downloaded for offline listening, with background playback.
 - **Qibla** compass and a **Tasbih** counter with presets, custom dhikr, and history.
-- **Home screen widgets** for prayer times, the next prayer, Qibla, verse of the day, last read, bookmarks, audio, and Tasbih.
+- **Home screen widgets** for prayer times, the next prayer, Qibla, verse of the day, last read, bookmarks, audio, and Tasbih. Choose Dark, Light, Transparent, or System separately for each widget. System follows Android’s day/night appearance and honors OLED Black at night.
 - **App shortcuts**: long-press the Mihraya icon to open Quran, Listen, or Tasbih directly, or drag a shortcut onto the home screen.
 - **Appearance**: Black, Light, or System theme, an optional OLED Black mode, and four accent colors.
 
@@ -46,8 +46,9 @@ Mihraya is licensed under the [Apache License, Version 2.0](LICENSE). Copyright 
 
 The Apache License covers Mihraya's own code and artwork. Some material in this repository belongs to others and keeps its own terms; it is not relicensed under Apache 2.0:
 
-- Quran text and translations in `app/src/main/assets/quran/`, retrieved through the Quran.com API and subject to the [Quran Foundation Developer Terms](https://api-docs.quran.foundation/legal/developer-terms/) and each translator's rights.
-- Fonts in `app/src/main/res/font/`, under the [SIL Open Font License 1.1](licenses/OFL-1.1.txt).
+- Uthmani text and translations in `app/src/main/assets/quran/`, retrieved through the Quran.com API and subject to the [Quran Foundation Developer Terms](https://api-docs.quran.foundation/legal/developer-terms/) and each translator's rights.
+- IndoPak text and its paired font by Ayman Siddiqui and R. Siddiqua for QuranWBW.com and Quran.com. See the [publisher’s credits and terms](licenses/QuranWBW.txt).
+- Other fonts in `app/src/main/res/font/`, under the [SIL Open Font License 1.1](licenses/OFL-1.1.txt).
 - Adhan recordings in `app/src/main/res/raw/`, under CC0, CC BY 3.0, CC BY-SA 4.0, or the public domain, as listed in [NOTICE](NOTICE).
 
 Recitation audio is streamed from mp3quran.net and is not part of this repository. See [NOTICE](NOTICE) for full attributions, including the open-source libraries the app uses.

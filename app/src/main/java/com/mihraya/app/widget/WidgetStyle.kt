@@ -6,6 +6,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.glance.LocalContext
+import androidx.glance.color.ColorProvider as DayNightColor
+import com.mihraya.app.appContainer
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalSize
 import androidx.glance.action.Action
@@ -27,48 +32,62 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 
 data class WidgetColors(
-    val background: Color,
-    val text: Color,
-    val muted: Color,
-    val accent: Color,
-    val onAccent: Color,
-    val chip: Color,
+    val background: ColorProvider,
+    val text: ColorProvider,
+    val muted: ColorProvider,
+    val accent: ColorProvider,
+    val onAccent: ColorProvider,
+    val chip: ColorProvider,
+    val system: Boolean = false,
 )
 
+@Composable
 fun WidgetTheme.colors(): WidgetColors = when (this) {
+    WidgetTheme.System -> {
+        val settings by LocalContext.current.appContainer.settings.state.collectAsState()
+        WidgetColors(
+            system = true,
+            background = DayNightColor(Color(0xFFF6F4EF), if (settings?.pureOledBlack == true) Color.Black else Color(0xFF101114)),
+            text = DayNightColor(Color(0xFF161513), Color(0xFFF3F1EC)),
+            muted = DayNightColor(Color(0xFF6E6A62), Color(0xFFB7B3AA)),
+            accent = DayNightColor(Color(0xFF8C6A32), Color(0xFFDCC394)),
+            onAccent = DayNightColor(Color(0xFFFFFBF4), Color(0xFF1A1408)),
+            chip = DayNightColor(Color(0xFFE8E3D8), Color(0xFF1F2025)),
+        )
+    }
     WidgetTheme.Dark -> WidgetColors(
-        background = Color(0xFF101114),
-        text = Color(0xFFF3F1EC),
-        muted = Color(0xFFB7B3AA),
-        accent = Color(0xFFDCC394),
-        onAccent = Color(0xFF1A1408),
-        chip = Color(0xFF1F2025),
+        background = ColorProvider(Color(0xFF101114)),
+        text = ColorProvider(Color(0xFFF3F1EC)),
+        muted = ColorProvider(Color(0xFFB7B3AA)),
+        accent = ColorProvider(Color(0xFFDCC394)),
+        onAccent = ColorProvider(Color(0xFF1A1408)),
+        chip = ColorProvider(Color(0xFF1F2025)),
     )
     WidgetTheme.Light -> WidgetColors(
-        background = Color(0xFFF6F4EF),
-        text = Color(0xFF161513),
-        muted = Color(0xFF6E6A62),
-        accent = Color(0xFF8C6A32),
-        onAccent = Color(0xFFFFFBF4),
-        chip = Color(0xFFE8E3D8),
+        background = ColorProvider(Color(0xFFF6F4EF)),
+        text = ColorProvider(Color(0xFF161513)),
+        muted = ColorProvider(Color(0xFF6E6A62)),
+        accent = ColorProvider(Color(0xFF8C6A32)),
+        onAccent = ColorProvider(Color(0xFFFFFBF4)),
+        chip = ColorProvider(Color(0xFFE8E3D8)),
     )
     WidgetTheme.Glass -> WidgetColors(
-        background = Color(red = 0.07f, green = 0.07f, blue = 0.08f, alpha = 0.72f),
-        text = Color(0xFFF7F4EE),
-        muted = Color(0xFFE4DED2),
-        accent = Color(0xFFE4C98A),
-        onAccent = Color(0xFF1A1408),
-        chip = Color(red = 1f, green = 1f, blue = 1f, alpha = 0.14f),
+        background = ColorProvider(Color(red = 0.07f, green = 0.07f, blue = 0.08f, alpha = 0.72f)),
+        text = ColorProvider(Color(0xFFF7F4EE)),
+        muted = ColorProvider(Color(0xFFE4DED2)),
+        accent = ColorProvider(Color(0xFFE4C98A)),
+        onAccent = ColorProvider(Color(0xFF1A1408)),
+        chip = ColorProvider(Color(red = 1f, green = 1f, blue = 1f, alpha = 0.14f)),
     )
 }
 
 fun WidgetColors.style(
     size: Int,
     weight: FontWeight = FontWeight.Normal,
-    color: Color = text,
+    color: ColorProvider = text,
     align: TextAlign? = null,
 ) = TextStyle(
-    color = ColorProvider(color),
+    color = color,
     fontSize = size.sp,
     fontWeight = weight,
     textAlign = align,
@@ -98,11 +117,10 @@ fun innerSize(): DpSize {
 
 @Composable
 fun WidgetFrame(
-    theme: WidgetTheme,
+    colors: WidgetColors,
     onClick: Action? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val colors = theme.colors()
     var modifier = GlanceModifier.fillMaxSize().cornerRadius(22.dp).background(colors.background).padding(framePadding())
     if (onClick != null) modifier = modifier.clickable(onClick)
     Box(modifier, contentAlignment = Alignment.CenterStart) {

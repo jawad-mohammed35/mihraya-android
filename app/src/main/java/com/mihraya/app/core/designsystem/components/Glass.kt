@@ -17,6 +17,10 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import android.app.ActivityManager
+import android.os.Build
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -30,6 +34,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 
 /** Translucent fill with a hairline border that catches light along the top edge. */
 fun Modifier.glass(
@@ -39,6 +44,9 @@ fun Modifier.glass(
 ): Modifier = this
     .clip(shape)
     .background(fill, shape)
+    .background(Brush.verticalGradient(listOf(
+        Color.White.copy(alpha = if (colors.isDark) 0.035f else 0.16f), Color.Transparent,
+    )), shape)
     .border(
         width = 0.75.dp,
         brush = Brush.verticalGradient(
@@ -55,16 +63,28 @@ fun glassHazeStyle(): HazeStyle {
     return HazeStyle(
         backgroundColor = colors.background,
         tints = listOf(HazeTint(colors.glassStrong)),
-        blurRadius = 26.dp,
+        blurRadius = 20.dp,
         noiseFactor = 0f,
         fallbackTint = HazeTint(colors.surfaceRaised.copy(alpha = 0.97f)),
     )
 }
 
+@Composable
+private fun backdropBlurAvailable(): Boolean {
+    val context = LocalContext.current
+    val lowRam = remember(context) { context.getSystemService(ActivityManager::class.java)?.isLowRamDevice == true }
+    return Build.VERSION.SDK_INT >= 31 && !lowRam && LocalView.current.isHardwareAccelerated
+}
+
+@Composable
+fun Modifier.glassBackdrop(state: HazeState): Modifier =
+    if (backdropBlurAvailable()) hazeSource(state) else this
+
 /** Frosted glass that blurs whatever scrolls beneath it; falls back to a near-opaque tint below Android 12. */
 @Composable
 fun Modifier.frosted(state: HazeState, shape: Shape): Modifier {
     val colors = Mihraya.colors
+    if (!backdropBlurAvailable()) return glass(shape, colors, colors.surfaceRaised.copy(alpha = 0.97f))
     val style = glassHazeStyle()
     return this
         .clip(shape)

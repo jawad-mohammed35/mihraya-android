@@ -75,7 +75,7 @@ fun ReaderPreferencesPanel(
             )
         }
 
-        Column {
+        if (prefs.script == QuranScript.Uthmani) Column {
             SectionLabel("Arabic font")
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -234,7 +234,7 @@ private fun FontOption(font: ArabicFont, script: QuranScript, selected: Boolean,
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            if (font == ArabicFont.AmiriQuran && script == QuranScript.IndoPak) "Amiri" else font.label,
+            font.label,
             style = Mihraya.type.caption,
             color = colors.textSecondary,
             maxLines = 1,

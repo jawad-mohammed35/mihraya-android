@@ -1,5 +1,6 @@
 package com.mihraya.app.ui
 
+import android.animation.ValueAnimator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -10,6 +11,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import com.mihraya.app.core.designsystem.components.glass
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -77,59 +87,96 @@ fun BottomBar(
     modifier: Modifier = Modifier,
 ) {
     val haptics = rememberHaptics()
-    Row(
-        modifier = modifier
-            .padding(horizontal = 18.dp)
-            .widthIn(max = 520.dp)
-            .fillMaxWidth()
-            .height(66.dp)
-            .frosted(hazeState, RoundedCornerShape(33.dp))
-            .padding(horizontal = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    val colors = Mihraya.colors
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    var drag by remember { mutableStateOf<Float?>(null) }
+    val active = current?.ordinal ?: 0
+    val select by rememberUpdatedState(onSelect)
+    val committed by rememberUpdatedState(active)
+    val position by animateFloatAsState(
+        drag ?: active.toFloat(), spring(dampingRatio = 0.9f, stiffness = 900f), label = "glassLens",
+    )
+    val preview = drag?.roundToInt() ?: active
+    val magnify = drag != null && ValueAnimator.areAnimatorsEnabled()
+    BoxWithConstraints(
+        modifier.padding(horizontal = 18.dp).widthIn(max = 520.dp).fillMaxWidth()
+            .height(66.dp).frosted(hazeState, RoundedCornerShape(33.dp)).padding(horizontal = 6.dp)
+            .pointerInput(rtl) {
+                fun positionAt(x: Float): Float {
+                    val fraction = x / size.width.coerceAtLeast(1)
+                    return ((if (rtl) 1f - fraction else fraction) * TopLevel.entries.size - 0.5f)
+                        .coerceIn(0f, TopLevel.entries.lastIndex.toFloat())
+                }
+                detectHorizontalDragGestures(
+                    onDragStart = { drag = positionAt(it.x) },
+                    onHorizontalDrag = { change, _ ->
+                        change.consume()
+                        drag = positionAt(change.position.x)
+                    },
+                    onDragEnd = {
+                        val target = drag?.roundToInt()
+                        drag = null
+                        if (target != null && target != committed) {
+                            haptics.tick()
+                            select(TopLevel.entries[target])
+                        }
+                    },
+                    onDragCancel = { drag = null },
+                )
+            },
     ) {
-        TopLevel.entries.forEach { item ->
-            NavItem(
-                item = item,
-                selected = item == current,
-                onClick = {
-                    if (item != current) haptics.tick()
-                    onSelect(item)
-                },
-                modifier = Modifier.weight(1f),
-            )
+        val slot = maxWidth / TopLevel.entries.size
+        Box(
+            Modifier.align(Alignment.CenterStart)
+                .offset { IntOffset((slot.toPx() * position).roundToInt(), 0) }
+                .width(slot).height(52.dp).padding(horizontal = 2.dp)
+                .glass(CircleShape, colors, colors.accentSoft),
+        )
+        Row(Modifier.fillMaxWidth().selectableGroup()) {
+            TopLevel.entries.forEach { item ->
+                NavItem(
+                    item = item, selected = item == current, highlighted = preview == item.ordinal,
+                    magnified = magnify && preview == item.ordinal,
+                    onClick = {
+                        if (item != current) haptics.tick()
+                        onSelect(item)
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun NavItem(item: TopLevel, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun NavItem(
+    item: TopLevel,
+    selected: Boolean,
+    highlighted: Boolean,
+    magnified: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = Mihraya.colors
     val interaction = remember { MutableInteractionSource() }
-    val tint by animateColorAsState(if (selected) colors.accent else colors.textTertiary, tween(220), label = "navTint")
-    val indicator by animateFloatAsState(if (selected) 1f else 0f, tween(260), label = "navIndicator")
+    val tint by animateColorAsState(if (highlighted) colors.textPrimary else colors.textSecondary, tween(220), label = "navTint")
+    val scale by animateFloatAsState(if (magnified) 1.12f else 1f, spring(), label = "lensScale")
     Column(
         modifier = modifier
             .fillMaxHeight()
             .pressScale(interaction, 0.9f)
-            .clickable(interactionSource = interaction, indication = null, role = Role.Tab, onClick = onClick),
+            .selectable(selected = selected, interactionSource = interaction, indication = null, role = Role.Tab, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Box(
-                Modifier
-                    .size(width = 50.dp, height = 30.dp)
-                    .graphicsLayer {
-                        alpha = indicator
-                        scaleX = 0.7f + 0.3f * indicator
-                    }
-                    .clip(CircleShape)
-                    .background(colors.accentSoft),
-            )
-            Crossfade(selected, animationSpec = tween(220), label = "navIcon") { filled ->
+        Box(Modifier.height(28.dp).graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }, contentAlignment = Alignment.Center) {
+            Crossfade(highlighted, animationSpec = tween(220), label = "navIcon") { filled ->
                 Icon(
                     if (filled) item.selectedIcon else item.icon,
-                    contentDescription = item.label,
+                    contentDescription = null,
                     tint = tint,
                     modifier = Modifier.size(22.dp),
                 )

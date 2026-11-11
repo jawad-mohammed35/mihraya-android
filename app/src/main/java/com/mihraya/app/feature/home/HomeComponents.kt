@@ -71,7 +71,7 @@ fun PrayerAlertButton(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(20.dp),
-            containerColor = colors.surfaceRaised,
+            containerColor = colors.surfaceRaised.copy(alpha = 0.97f),
         ) {
             alertOptionsFor(salah).forEach { option ->
                 DropdownMenuItem(

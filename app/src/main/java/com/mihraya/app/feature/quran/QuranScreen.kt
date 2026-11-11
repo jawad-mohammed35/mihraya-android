@@ -84,8 +84,9 @@ fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> U
     val searchList = rememberLazyListState()
     val lists = listOf(surahList, juzList, bookmarkList)
     val visibleList = { if (searching) searchList else lists[pager.currentPage] }
+    val initialReselect = remember { scrollToTop }
     LaunchedEffect(scrollToTop) {
-        if (scrollToTop > 0) {
+        if (scrollToTop != initialReselect) {
             launch { header.expand() }
             visibleList().animateScrollToItem(0)
         }

@@ -348,7 +348,7 @@ private fun <T> SoundDropdown(
             },
             offset = DpOffset(8.dp, 0.dp),
             shape = RoundedCornerShape(22.dp),
-            containerColor = colors.surfaceRaised,
+            containerColor = colors.surfaceRaised.copy(alpha = 0.97f),
             border = BorderStroke(1.dp, colors.glassBorder),
             shadowElevation = 12.dp,
             modifier = Modifier.width(with(density) { anchorWidth.toDp() } - 16.dp),

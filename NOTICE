@@ -12,7 +12,7 @@ Bundled in this repository and in the app
 -----------------------------------------
 
 Quran text and translations: app/src/main/assets/quran/
-  uthmani.txt, indopak.txt   Quran text in the Uthmani and IndoPak scripts
+  uthmani.txt                Quran text in the Uthmani script
   tr_20.txt                  Saheeh International (English)
   tr_234.txt                 Fateh Muhammad Jalandhari (Urdu)
   tr_57.txt                  Transliteration
@@ -20,7 +20,12 @@ Quran text and translations: app/src/main/assets/quran/
   Quran Foundation Developer Terms and to the rights of each translation's publisher.
   https://api-docs.quran.foundation/legal/developer-terms/
 
-Fonts: app/src/main/res/font/
+IndoPak Madinah text and normal-spacing WL font (v4.2.2):
+  indopak.txt and indopak_quranwbw.ttf by Ayman Siddiqui and R. Siddiqua for
+  QuranWBW.com and Quran.com. Publisher credits and terms: licenses/QuranWBW.txt
+  https://github.com/marwan/indopak-quran-text/tree/a5c0eab
+
+Other fonts: app/src/main/res/font/
   SIL Open Font License 1.1. Copyright notices and licence text: licenses/OFL-1.1.txt
   Amiri, Amiri Quran, Manrope, Noto Naskh Arabic, Noto Nastaliq Urdu, Scheherazade New
 

@@ -8,6 +8,7 @@ import com.mihraya.app.data.settings.ThemeMode
 @Immutable
 data class MihrayaColors(
     val isDark: Boolean,
+    val isPureBlack: Boolean,
     val background: Color,
     val surface: Color,
     val surfaceRaised: Color,
@@ -47,11 +48,12 @@ fun darkPalette(accent: AccentColor, pureBlack: Boolean = false): MihrayaColors 
     val ink = Color(0xFFF3F1EC)
     return MihrayaColors(
         isDark = true,
+        isPureBlack = pureBlack,
         background = if (pureBlack) Color.Black else Color(0xFF101114),
-        surface = if (pureBlack) Color(0xFF0C0C0D) else Color(0xFF17181C),
-        surfaceRaised = if (pureBlack) Color(0xFF151517) else Color(0xFF1F2126),
-        glass = Color.White.copy(alpha = if (pureBlack) 0.045f else 0.055f),
-        glassStrong = (if (pureBlack) Color(0xFF141416) else Color(0xFF1C1E24)).copy(alpha = 0.72f),
+        surface = if (pureBlack) Color.Black else Color(0xFF17181C),
+        surfaceRaised = if (pureBlack) Color.Black else Color(0xFF1F2126),
+        glass = if (pureBlack) Color.Black else Color.White.copy(alpha = 0.055f),
+        glassStrong = if (pureBlack) Color.Black else Color(0xFF1C1E24).copy(alpha = 0.72f),
         glassBorder = Color.White.copy(alpha = if (pureBlack) 0.08f else 0.09f),
         glassHighlight = Color.White.copy(alpha = 0.17f),
         textPrimary = ink,
@@ -70,6 +72,7 @@ fun lightPalette(accent: AccentColor): MihrayaColors {
     val ink = Color(0xFF111312)
     return MihrayaColors(
         isDark = false,
+        isPureBlack = false,
         background = Color(0xFFF5F4F0),
         surface = Color(0xFFFFFFFF),
         surfaceRaised = Color(0xFFFFFFFF),
@@ -87,3 +90,7 @@ fun lightPalette(accent: AccentColor): MihrayaColors {
         danger = Color(0xFFB83A2E),
     )
 }
+
+/** Opaque in OLED mode so underlying content cannot lighten menu surfaces. */
+fun MihrayaColors.overlaySurface(alpha: Float = 0.97f): Color =
+    if (isPureBlack) Color.Black else surfaceRaised.copy(alpha = alpha)

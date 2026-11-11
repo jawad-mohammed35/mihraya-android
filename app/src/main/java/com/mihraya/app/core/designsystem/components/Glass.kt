@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.core.designsystem.theme.overlaySurface
 import com.mihraya.app.core.designsystem.theme.MihrayaColors
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -45,7 +46,7 @@ fun Modifier.glass(
     .clip(shape)
     .background(fill, shape)
     .background(Brush.verticalGradient(listOf(
-        Color.White.copy(alpha = if (colors.isDark) 0.035f else 0.16f), Color.Transparent,
+        Color.White.copy(alpha = if (colors.isPureBlack) 0f else if (colors.isDark) 0.035f else 0.16f), Color.Transparent,
     )), shape)
     .border(
         width = 0.75.dp,
@@ -65,7 +66,7 @@ fun glassHazeStyle(): HazeStyle {
         tints = listOf(HazeTint(colors.glassStrong)),
         blurRadius = 20.dp,
         noiseFactor = 0f,
-        fallbackTint = HazeTint(colors.surfaceRaised.copy(alpha = 0.97f)),
+        fallbackTint = HazeTint(colors.overlaySurface()),
     )
 }
 
@@ -84,7 +85,7 @@ fun Modifier.glassBackdrop(state: HazeState): Modifier =
 @Composable
 fun Modifier.frosted(state: HazeState, shape: Shape): Modifier {
     val colors = Mihraya.colors
-    if (!backdropBlurAvailable()) return glass(shape, colors, colors.surfaceRaised.copy(alpha = 0.97f))
+    if (colors.isPureBlack || !backdropBlurAvailable()) return glass(shape, colors, colors.overlaySurface())
     val style = glassHazeStyle()
     return this
         .clip(shape)

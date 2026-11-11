@@ -97,6 +97,7 @@ import com.mihraya.app.core.designsystem.components.SecondaryButton
 import com.mihraya.app.core.designsystem.components.frosted
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.core.designsystem.theme.overlaySurface
 import com.mihraya.app.core.util.rememberHaptics
 import com.mihraya.app.data.quran.QuranMeta
 import com.mihraya.app.data.quran.tajweedAnnotated
@@ -277,6 +278,7 @@ fun ReaderScreen(
         MihrayaSheet(onDismiss = { showPreferences = false }, title = "Reading preferences") {
             Column(
                 Modifier
+                    .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp, vertical = 8.dp),
             ) {
@@ -309,6 +311,7 @@ fun ReaderScreen(
         MihrayaSheet(onDismiss = { selectedVerse = null }, title = "${surahInfo.name} · ${verse.ref.key}") {
             Column(
                 Modifier
+                    .weight(1f, fill = false)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp),
             ) {
@@ -366,7 +369,7 @@ private fun ReaderTopBar(
                 .fillMaxWidth()
                 .clip(shape)
                 // Haze draws nothing over the verses when the bar slides back in, so the bar keeps its own surface.
-                .background(colors.surfaceRaised.copy(alpha = 0.97f))
+                .background(colors.overlaySurface())
                 .frosted(haze, shape),
         ) {
             Row(

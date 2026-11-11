@@ -85,6 +85,7 @@ import com.mihraya.app.core.designsystem.components.SheetOption
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.LocalUse24Hour
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.core.designsystem.theme.overlaySurface
 import com.mihraya.app.core.util.TimeFormat
 import com.mihraya.app.data.audio.DuaAudio
 import com.mihraya.app.data.prayer.Salah
@@ -348,7 +349,7 @@ private fun <T> SoundDropdown(
             },
             offset = DpOffset(8.dp, 0.dp),
             shape = RoundedCornerShape(22.dp),
-            containerColor = colors.surfaceRaised.copy(alpha = 0.97f),
+            containerColor = colors.overlaySurface(),
             border = BorderStroke(1.dp, colors.glassBorder),
             shadowElevation = 12.dp,
             modifier = Modifier.width(with(density) { anchorWidth.toDp() } - 16.dp),

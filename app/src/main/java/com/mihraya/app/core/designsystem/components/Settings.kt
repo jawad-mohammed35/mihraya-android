@@ -13,20 +13,21 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,19 +38,27 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.rememberModalBottomSheetState
+import android.os.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.core.designsystem.theme.overlaySurface
 
 @Composable
 fun SettingsGroup(
@@ -269,14 +278,29 @@ fun MihrayaSheet(
     title: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    MihrayaSheetContent(onDismiss, title, rememberModalBottomSheetState(skipPartiallyExpanded = true), content)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MihrayaSheetContent(
+    onDismiss: () -> Unit,
+    title: String?,
+    sheetState: SheetState,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val colors = Mihraya.colors
-    val topInset = WindowInsets.statusBars.union(WindowInsets.displayCutout).asPaddingValues().calculateTopPadding()
-    val maxHeight = (LocalConfiguration.current.screenHeightDp.dp - topInset - 12.dp).coerceAtLeast(280.dp)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        modifier = Modifier.glass(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp), colors, colors.surfaceRaised.copy(alpha = 0.97f)),
-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        sheetState = sheetState,
+        // Keep clipping inside Material's translated Surface. An outer glass clip
+        // clips the moving sheet against its unshifted bounds during animation.
+        modifier = Modifier.windowInsetsPadding(
+            WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        ),
+        containerColor = colors.overlaySurface(),
+        tonalElevation = 0.dp,
+        contentWindowInsets = { WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom) },
         contentColor = colors.textPrimary,
         shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
         dragHandle = {
@@ -289,7 +313,26 @@ fun MihrayaSheet(
             )
         },
     ) {
-        Column(Modifier.fillMaxWidth().heightIn(max = maxHeight).navigationBarsPadding().padding(bottom = 12.dp)) {
+        // Material 3 1.3 chooses dialog bar icons from the device theme. Match
+        // Mihraya's appearance instead, including manual Black on a light device.
+        val view = LocalView.current
+        val window = (view.parent as? DialogWindowProvider)?.window
+        SideEffect {
+            window?.let {
+                val controller = WindowCompat.getInsetsController(it, view)
+                controller.isAppearanceLightStatusBars = !colors.isDark
+                controller.isAppearanceLightNavigationBars = !colors.isDark
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    it.isStatusBarContrastEnforced = false
+                    it.isNavigationBarContrastEnforced = false
+                }
+            }
+        }
+        Column(
+            Modifier.fillMaxWidth()
+                .glass(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp), colors, colors.overlaySurface())
+                .padding(bottom = 12.dp),
+        ) {
             if (title != null) {
                 Text(
                     title,
@@ -303,6 +346,7 @@ fun MihrayaSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> OptionSheet(
     title: String,
@@ -311,16 +355,25 @@ fun <T> OptionSheet(
     onSelect: (T) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    MihrayaSheet(onDismiss = onDismiss, title = title) {
-        LazyColumn(Modifier.fillMaxWidth()) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    MihrayaSheetContent(onDismiss = onDismiss, title = title, sheetState = sheetState) {
+        LazyColumn(Modifier.fillMaxWidth().weight(1f, fill = false).selectableGroup()) {
             items(options) { option ->
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .clickable(role = Role.RadioButton) {
-                            onSelect(option.value)
-                            onDismiss()
-                        }
+                        .selectable(
+                            selected = option.value == selected,
+                            role = Role.RadioButton,
+                            onClick = {
+                                onSelect(option.value)
+                                scope.launch {
+                                    sheetState.hide()
+                                    if (!sheetState.isVisible) onDismiss()
+                                }
+                            },
+                        )
                         .padding(horizontal = 24.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

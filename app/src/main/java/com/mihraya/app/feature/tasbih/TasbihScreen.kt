@@ -439,7 +439,7 @@ private fun HistorySheet(sessions: List<TasbihSession>, onClear: () -> Unit, onD
             color = colors.textTertiary,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
-        LazyColumn(Modifier.heightIn(max = 460.dp).padding(top = 8.dp)) {
+        LazyColumn(Modifier.weight(1f, fill = false).heightIn(max = 460.dp).padding(top = 8.dp)) {
             val grouped = sessions.groupBy {
                 DateUtils.getRelativeTimeSpanString(it.endedAt, System.currentTimeMillis(), DateUtils.DAY_IN_MILLIS).toString()
             }

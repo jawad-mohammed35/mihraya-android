@@ -76,6 +76,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.core.designsystem.theme.overlaySurface
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -622,7 +623,7 @@ fun MihrayaDialog(
     val colors = Mihraya.colors
     AlertDialog(
         onDismissRequest = onDismiss,
-        modifier = Modifier.glass(RoundedCornerShape(28.dp), colors, colors.surfaceRaised.copy(alpha = 0.96f)),
+        modifier = Modifier.glass(RoundedCornerShape(28.dp), colors, colors.overlaySurface(0.96f)),
         containerColor = Color.Transparent,
         shape = RoundedCornerShape(28.dp),
         title = { Text(title, style = Mihraya.type.title, color = colors.textPrimary) },

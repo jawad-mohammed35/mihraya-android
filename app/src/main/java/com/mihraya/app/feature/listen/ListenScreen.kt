@@ -72,6 +72,7 @@ import com.mihraya.app.core.designsystem.components.glass
 import com.mihraya.app.core.designsystem.components.rememberCollapsingHeaderState
 import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.core.designsystem.theme.overlaySurface
 import com.mihraya.app.core.util.TimeFormat
 import com.mihraya.app.data.audio.AudioDownloads
 import com.mihraya.app.data.audio.DownloadStatus
@@ -389,7 +390,7 @@ private fun ReciterDropdown(selected: Reciter, onSelect: (Reciter) -> Unit) {
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(22.dp),
-            containerColor = colors.surfaceRaised.copy(alpha = 0.97f),
+            containerColor = colors.overlaySurface(),
             border = BorderStroke(1.dp, colors.glassBorder),
             shadowElevation = 12.dp,
             modifier = Modifier

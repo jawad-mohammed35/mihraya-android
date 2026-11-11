@@ -174,7 +174,7 @@ fun MihrayaRoot(
     )
 
     val onHome = entry?.destination?.hasRoute<HomeRoute>() == true
-    val glow by animateFloatAsState(if (onHome) 1f else 0f, tween(300), label = "homeGlow")
+    val glow by animateFloatAsState(if (onHome && !colors.isPureBlack) 1f else 0f, tween(300), label = "homeGlow")
     val topInset = WindowInsets.topChrome.asPaddingValues().calculateTopPadding()
 
     Box(

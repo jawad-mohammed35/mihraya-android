@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.mihraya.app.core.designsystem.components.CircleIconButton
 import com.mihraya.app.core.designsystem.theme.Mihraya
+import com.mihraya.app.core.designsystem.theme.overlaySurface
 import com.mihraya.app.data.prayer.Salah
 import com.mihraya.app.data.settings.AlertMode
 
@@ -71,7 +72,7 @@ fun PrayerAlertButton(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(20.dp),
-            containerColor = colors.surfaceRaised.copy(alpha = 0.97f),
+            containerColor = colors.overlaySurface(),
         ) {
             alertOptionsFor(salah).forEach { option ->
                 DropdownMenuItem(

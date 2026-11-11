@@ -159,7 +159,7 @@ private fun NavItem(
 ) {
     val colors = Mihraya.colors
     val interaction = remember { MutableInteractionSource() }
-    val tint by animateColorAsState(if (highlighted) colors.textPrimary else colors.textSecondary, tween(220), label = "navTint")
+    val tint by animateColorAsState(if (highlighted) colors.accent else colors.textSecondary, tween(220), label = "navTint")
     val scale by animateFloatAsState(if (magnified) 1.12f else 1f, spring(), label = "lensScale")
     Column(
         modifier = modifier

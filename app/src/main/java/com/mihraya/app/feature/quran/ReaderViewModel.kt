@@ -79,8 +79,14 @@ class ReaderViewModel(
 
     fun saveProgress(surah: Int, ayah: Int) = container.library.setLastRead(surah, ayah)
 
-    fun updatePrefs(transform: (ReaderPreferences) -> ReaderPreferences) =
-        container.settings.edit { it.copy(reader = transform(it.reader)) }
+    fun updatePrefs(visibleAyah: Int, transform: (ReaderPreferences) -> ReaderPreferences) =
+        container.settings.edit {
+            val next = transform(it.reader)
+            // Verse rows and continuous paragraphs have different item indices.
+            // Capture the verse before the new layout can clamp the old list index.
+            if (next.layout != it.reader.layout) pendingAyah = visibleAyah
+            it.copy(reader = next)
+        }
 
     fun playSurah(surah: Int) {
         val reciter = Reciters.byId(container.settings.state.value?.reciterId)

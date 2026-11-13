@@ -7,6 +7,12 @@ import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.glance.Image
+import androidx.glance.ImageProvider
+import androidx.glance.ColorFilter
+import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.lazy.LazyColumn as BookmarkList
+import androidx.glance.appwidget.lazy.items
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalContext
@@ -29,6 +35,7 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.size
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
@@ -42,6 +49,7 @@ import com.mihraya.app.R
 import com.mihraya.app.appContainer
 import com.mihraya.app.core.util.TimeFormat
 import com.mihraya.app.data.audio.Reciters
+import com.mihraya.app.data.library.Bookmark
 import com.mihraya.app.data.library.dhikr
 import com.mihraya.app.data.prayer.PrayerDay
 import com.mihraya.app.data.prayer.PrayerMoment
@@ -495,9 +503,8 @@ class LastReadWidget : GlanceAppWidget() {
 }
 
 class BookmarksWidget : GlanceAppWidget() {
-    override val sizeMode = responsive(
-        110 to 50, 180 to 50, 110 to 100, 180 to 100, 250 to 100, 160 to 160, 250 to 180, 250 to 260,
-    )
+    // Real host dimensions, rather than a short/tall breakpoint chosen for a different width.
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val widgetId = appWidgetId(context, id)
@@ -506,42 +513,57 @@ class BookmarksWidget : GlanceAppWidget() {
                 runCatching { context.appContainer.library.current().bookmarks }.getOrDefault(emptyList())
         }) { (options, bookmarks) ->
             val colors = options.theme.colors()
-            WidgetFrame(colors, openMihraya(Destinations.QURAN)) {
-                val inner = innerSize()
-                if (bookmarks.isEmpty()) {
-                    EmptyState("Bookmarks", "Save a verse while reading and it will appear here.", colors)
+            val compact = LocalSize.current.height < 100.dp
+            WidgetFrame(colors, contentPadding = if (compact) 4.dp else 10.dp) {
+                if (compact) {
+                    // A one-cell-tall widget spends its height on the list, with a trailing shortcut.
+                    Row(GlanceModifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                        if (bookmarks.isEmpty()) {
+                            Text("No bookmarks", style = colors.style(11, color = colors.muted), maxLines = 1,
+                                modifier = GlanceModifier.defaultWeight())
+                        } else {
+                            BookmarkCollection(bookmarks, colors, GlanceModifier.defaultWeight().fillMaxHeight(), compact = true)
+                        }
+                        QuranJumpButton(colors, compact = true)
+                    }
                 } else {
-                    val showHeader = inner.height >= 70.dp
-                    val rowHeight = 36.dp
-                    val room = if (showHeader) inner.height - 20.dp else inner.height
-                    val capacity = (room / rowHeight).toInt().coerceIn(1, 8)
-                    if (showHeader) {
-                        Row(GlanceModifier.fillMaxWidth().height(20.dp)) {
-                            WidgetTitle("Bookmarks", colors)
-                            Spacer(GlanceModifier.defaultWeight())
-                            Text("${bookmarks.size}", style = colors.style(11, color = colors.muted), maxLines = 1)
-                        }
+                    Row(GlanceModifier.fillMaxWidth().height(28.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Bookmarks", style = colors.style(11, FontWeight.Medium, colors.accent),
+                            maxLines = 1, modifier = GlanceModifier.defaultWeight())
+                        QuranJumpButton(colors)
                     }
-                    val shown = bookmarks.take(capacity)
-                    shown.forEach { bookmark ->
-                        val info = QuranMeta.surah(bookmark.surah)
-                        Row(
-                            GlanceModifier
-                                .fillMaxWidth()
-                                .height(rowHeight)
-                                .clickable(openMihraya(Destinations.READER, bookmark.surah, bookmark.ayah)),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(info.name, style = colors.style(15, FontWeight.Medium), maxLines = 1, modifier = GlanceModifier.defaultWeight())
-                            Spacer(GlanceModifier.width(8.dp))
-                            Text("${bookmark.surah}:${bookmark.ayah}", style = colors.style(13, color = colors.accent), maxLines = 1)
-                        }
-                    }
-                    if (showHeader && capacity - shown.size >= 2) {
-                        Spacer(GlanceModifier.defaultWeight())
-                        Text("Save a verse while reading to add it here.", style = colors.style(12, color = colors.muted), maxLines = 2)
+                    if (bookmarks.isEmpty()) {
+                        Text("Save a verse while reading to add it here.", style = colors.style(12, color = colors.muted), maxLines = 3)
+                    } else {
+                        BookmarkCollection(bookmarks, colors, GlanceModifier.fillMaxWidth().defaultWeight())
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuranJumpButton(colors: WidgetColors, compact: Boolean = false) {
+    Image(ImageProvider(R.drawable.ic_widget_quran_jump), "Go to Quran",
+        modifier = GlanceModifier.size(if (compact) 24.dp else 28.dp).padding(4.dp)
+            .clickable(openMihraya(Destinations.QURAN_NAVIGATE)),
+        colorFilter = ColorFilter.tint(colors.accent))
+}
+
+@Composable
+private fun BookmarkCollection(bookmarks: List<Bookmark>, colors: WidgetColors, modifier: GlanceModifier, compact: Boolean = false) {
+    // Glance 1.1 translates this to Android's native scrollable ListView collection.
+    BookmarkList(modifier) {
+        items(bookmarks, itemId = { QuranMeta.verseId(it.surah, it.ayah).toLong() }) { bookmark ->
+            val info = QuranMeta.surah(bookmark.surah)
+            Row(GlanceModifier.fillMaxWidth().height(if (compact) 24.dp else 32.dp)
+                .clickable(openMihraya(Destinations.READER, bookmark.surah, bookmark.ayah)),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(info.name, style = colors.style(if (compact) 12 else 13, FontWeight.Medium), maxLines = 1,
+                    modifier = GlanceModifier.defaultWeight())
+                Spacer(GlanceModifier.width(if (compact) 4.dp else 6.dp))
+                Text("${bookmark.surah}:${bookmark.ayah}", style = colors.style(if (compact) 11 else 12, color = colors.accent), maxLines = 1)
             }
         }
     }

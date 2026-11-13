@@ -144,7 +144,7 @@ data class AlertPreferences(
 
 @Serializable
 data class ReaderPreferences(
-    val script: QuranScript = QuranScript.Uthmani,
+    val script: QuranScript = QuranScript.IndoPak,
     val arabicFont: ArabicFont = ArabicFont.AmiriQuran,
     val arabicSize: Float = 28f,
     val lineHeight: Float = 1.9f,

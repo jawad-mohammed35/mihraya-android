@@ -1,5 +1,6 @@
 package com.mihraya.app.feature.quran
 
+import android.content.res.Configuration
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
@@ -67,11 +68,13 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -82,6 +85,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,6 +95,7 @@ import com.mihraya.app.core.designsystem.components.sideChrome
 import com.mihraya.app.core.designsystem.components.topChrome
 import com.mihraya.app.core.designsystem.components.StarShape
 import com.mihraya.app.core.designsystem.components.MihrayaDialog
+import com.mihraya.app.core.designsystem.components.MihrayaSideSheet
 import com.mihraya.app.core.designsystem.components.MihrayaSheet
 import com.mihraya.app.core.designsystem.components.PrimaryButton
 import com.mihraya.app.core.designsystem.components.SecondaryButton
@@ -143,7 +148,7 @@ fun ReaderScreen(
     val haptics = rememberHaptics()
 
     var chromeVisible by remember { mutableStateOf(true) }
-    var showPreferences by remember { mutableStateOf(false) }
+    var showPreferences by rememberSaveable { mutableStateOf(false) }
     var showGoTo by remember { mutableStateOf(false) }
     var selectedVerse by remember { mutableStateOf<Verse?>(null) }
 
@@ -275,7 +280,7 @@ fun ReaderScreen(
     }
 
     if (showPreferences && current != null) {
-        MihrayaSheet(onDismiss = { showPreferences = false }, title = "Reading preferences") {
+        AdaptiveReaderPreferences(onDismiss = { showPreferences = false }) {
             Column(
                 Modifier
                     .weight(1f, fill = false)
@@ -284,7 +289,7 @@ fun ReaderScreen(
             ) {
                 ReaderPreferencesPanel(
                     prefs = current.prefs,
-                    onChange = vm::updatePrefs,
+                    onChange = { transform -> vm.updatePrefs(visibleAyah, transform) },
                     onManageTranslations = {
                         showPreferences = false
                         onManageTranslations()
@@ -330,6 +335,24 @@ fun ReaderScreen(
                 Spacer(Modifier.height(12.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun Modifier.readingWidth(): Modifier =
+    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) fillMaxWidth()
+    else widthIn(max = 680.dp).fillMaxWidth()
+
+@Composable
+private fun readingGutter(portrait: Dp): Dp =
+    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) 16.dp else portrait
+
+@Composable
+private fun AdaptiveReaderPreferences(onDismiss: () -> Unit, content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
+    if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        MihrayaSideSheet(onDismiss, "Reading preferences", content)
+    } else {
+        MihrayaSheet(onDismiss, "Reading preferences", content)
     }
 }
 
@@ -421,9 +444,8 @@ private fun SurahHeader(
     val colors = Mihraya.colors
     Column(
         Modifier
-            .widthIn(max = 680.dp)
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+            .readingWidth()
+            .padding(horizontal = readingGutter(24.dp), vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -470,7 +492,10 @@ private fun SurahHeader(
 private fun quranStyle(prefs: ReaderPreferences): TextStyle = TextStyle(
     fontFamily = ArabicFonts.quran(prefs.arabicFont, prefs.script),
     fontSize = prefs.arabicSize.sp,
-    lineHeight = (prefs.arabicSize * prefs.lineHeight).sp,
+    lineHeight = (prefs.arabicSize * prefs.effectiveLineHeight()).sp,
+    fontWeight = FontWeight.Normal,
+    letterSpacing = 0.sp,
+    platformStyle = PlatformTextStyle(includeFontPadding = true),
     textDirection = TextDirection.Rtl,
     textAlign = TextAlign.Right,
 )
@@ -490,10 +515,9 @@ private fun VerseItem(
     val colors = Mihraya.colors
     Column(
         Modifier
-            .widthIn(max = 680.dp)
-            .fillMaxWidth(),
+            .readingWidth(),
     ) {
-        Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 14.dp, bottom = 20.dp)) {
+        Column(Modifier.padding(start = readingGutter(22.dp), end = readingGutter(22.dp), top = 14.dp, bottom = 20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier
@@ -523,7 +547,7 @@ private fun VerseItem(
             Spacer(Modifier.height(12.dp))
             VerseBody(verse, prefs, includeTranslations = prefs.showTranslation)
         }
-        HairlineDivider(Modifier.padding(horizontal = 22.dp))
+        HairlineDivider(Modifier.padding(horizontal = readingGutter(22.dp)))
     }
 }
 
@@ -627,9 +651,8 @@ private fun ContinuousParagraph(
         style = quranStyle(prefs).copy(textAlign = TextAlign.Justify),
         color = colors.textPrimary,
         modifier = Modifier
-            .widthIn(max = 680.dp)
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 6.dp),
+            .readingWidth()
+            .padding(horizontal = readingGutter(24.dp), vertical = 6.dp),
     )
 }
 
@@ -666,8 +689,8 @@ private fun SurahFooter(surah: Surah, onOpen: (Int) -> Unit) {
 }
 
 @Composable
-private fun GoToVerseDialog(surah: Surah, onDismiss: () -> Unit, onGo: (Int) -> Unit) {
-    var text by remember { mutableStateOf("") }
+internal fun GoToVerseDialog(surah: Surah, onDismiss: () -> Unit, onGo: (Int) -> Unit) {
+    var text by rememberSaveable(surah.number) { mutableStateOf("") }
     val number = text.toIntOrNull()
     val valid = number != null && number in 1..surah.verseCount
     val colors = Mihraya.colors

@@ -5,10 +5,10 @@ Prayer times, Quran, recitation, Qibla, and Tasbih for Android. The floating Liq
 ## Features
 
 - **Prayer times** calculated on the device, with Adhan or tone alerts, a day and month timetable, and Hijri dates.
-- **Quran reader** with offline Uthmani and QuranWBW IndoPak Madinah editions. IndoPak uses its matching typeface, pause marks, and verse markers. Switch scripts while keeping your translations, bookmarks, and reading position. The reader also supports transliteration, search, and optional Uthmani tajweed colors.
+- **Quran reader** with offline Uthmani and QuranWBW IndoPak Madinah editions. New installations start with IndoPak; existing script preferences are retained. IndoPak uses its matching typeface, pause marks, and verse markers. Switch scripts while keeping your translations, bookmarks, and reading position. Landscape reading uses the available width, with Reading Preferences in a sliding right-side panel; portrait keeps its bottom sheet. Amiri Quran preserves its original shaping with room for stacked marks. The reader also supports transliteration, search, and optional Uthmani tajweed colors.
 - **Recitation** from 17 reciters, streamed or downloaded for offline listening, with background playback.
 - **Qibla** compass and a **Tasbih** counter with presets, custom dhikr, and history.
-- **Home screen widgets** for prayer times, the next prayer, Qibla, verse of the day, last read, bookmarks, audio, and Tasbih. Choose Dark, Light, Transparent, or System separately for each widget. System follows Android’s day/night appearance and honors OLED Black at night.
+- **Home screen widgets** for prayer times, the next prayer, Qibla, verse of the day, last read, bookmarks, audio, and Tasbih. Choose Dark, Light, Transparent, or System separately for each widget. System follows Android’s day/night appearance and honors OLED Black at night. The Bookmarks widget adapts to its exact size, scrolls through saved verses, and offers a shortcut for Surah, Ayah, and Juz navigation.
 - **App shortcuts**: long-press the Mihraya icon to open Quran, Listen, or Tasbih directly, or drag a shortcut onto the home screen.
 - **Appearance**: Black, Light, or System theme, an optional OLED Black mode, and four accent colors.
 

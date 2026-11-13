@@ -136,9 +136,16 @@ fun MihrayaRoot(
                 playerExpanded = false
                 navController.navigateTopLevel(tab)
             }
+            launch.dest == Destinations.QURAN_NAVIGATE -> navController.navigate(QuranNavigationRoute) { launchSingleTop = true }
             launch.dest == Destinations.TIMETABLE -> navController.navigate(TimetableRoute) { launchSingleTop = true }
             launch.dest == Destinations.QIBLA -> navController.navigate(QiblaRoute) { launchSingleTop = true }
-            launch.dest == Destinations.READER -> navController.navigate(ReaderRoute(launch.surah, launch.ayah)) { launchSingleTop = true }
+            launch.dest == Destinations.READER -> navController.navigate(ReaderRoute(launch.surah, launch.ayah)) {
+                // A widget can target a different verse while a Reader is already on top.
+                // Replace that entry so its ViewModel receives the new route arguments.
+                if (navController.currentDestination?.hasRoute<ReaderRoute>() == true) {
+                    popUpTo<ReaderRoute> { inclusive = true }
+                }
+            }
             launch.dest == Destinations.PLAYER -> playerExpanded = true
         }
         if (launch.nonce != startupNonce) return@LaunchedEffect
@@ -304,6 +311,11 @@ private fun MihrayaNavHost(
                 scrollToTop = quranScroll,
                 onOpenReader = { surah, ayah -> navController.navigate(ReaderRoute(surah, ayah)) },
             )
+        }
+        composable<QuranNavigationRoute> {
+            QuranScreen(navigateToVerse = true, onOpenReader = { surah, ayah ->
+                navController.navigate(ReaderRoute(surah, ayah))
+            })
         }
         composable<ListenRoute> {
             ListenScreen(

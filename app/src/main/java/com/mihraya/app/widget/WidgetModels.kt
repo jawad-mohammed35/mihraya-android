@@ -74,6 +74,7 @@ object Destinations {
     const val QIBLA = "qibla"
     const val READER = "reader"
     const val QURAN = "quran"
+    const val QURAN_NAVIGATE = "quran_navigate"
     const val LISTEN = "listen"
     const val TASBIH = "tasbih"
     const val PLAYER = "player"

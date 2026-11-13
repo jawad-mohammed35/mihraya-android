@@ -20,7 +20,7 @@ class SettingsRepository(
         context = context,
         fileName = "settings.json",
         json = json,
-        serializer = AppSettings.serializer(),
+        serializer = StoredSettingsSerializer,
         default = AppSettings(),
         scope = scope,
     )

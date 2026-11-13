@@ -119,9 +119,10 @@ fun innerSize(): DpSize {
 fun WidgetFrame(
     colors: WidgetColors,
     onClick: Action? = null,
+    contentPadding: Dp? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    var modifier = GlanceModifier.fillMaxSize().cornerRadius(22.dp).background(colors.background).padding(framePadding())
+    var modifier = GlanceModifier.fillMaxSize().cornerRadius(22.dp).background(colors.background).padding(contentPadding ?: framePadding())
     if (onClick != null) modifier = modifier.clickable(onClick)
     Box(modifier, contentAlignment = Alignment.CenterStart) {
         Column(GlanceModifier.fillMaxSize()) { content() }

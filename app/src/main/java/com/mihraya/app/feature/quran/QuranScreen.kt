@@ -35,6 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -69,7 +72,7 @@ import com.mihraya.app.ui.mihrayaViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> Unit) {
+fun QuranScreen(scrollToTop: Int = 0, navigateToVerse: Boolean = false, onOpenReader: (surah: Int, ayah: Int) -> Unit) {
     val vm = mihrayaViewModel { QuranViewModel(it) }
     val query by vm.query.collectAsStateWithLifecycle()
     val library by vm.library.collectAsStateWithLifecycle()
@@ -77,7 +80,11 @@ fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> U
     val searching = query.isNotBlank()
     val item = Modifier.widthIn(max = 680.dp).fillMaxWidth()
     val header = rememberCollapsingHeaderState()
-    val pager = rememberPagerState { 3 }
+    val pager = rememberPagerState { if (navigateToVerse) 2 else 3 }
+    var pickAyahFor by rememberSaveable { mutableStateOf<Int?>(null) }
+    val openSurah: (Int, Int) -> Unit = { surah, ayah ->
+        if (navigateToVerse && ayah == 1) pickAyahFor = surah else onOpenReader(surah, ayah)
+    }
     val surahList = rememberLazyListState()
     val juzList = rememberLazyListState()
     val bookmarkList = rememberLazyListState()
@@ -98,14 +105,14 @@ fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> U
         canScrollForward = { visibleList().canScrollForward },
         header = {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                ScreenHeader("Quran", modifier = item)
+                ScreenHeader(if (navigateToVerse) "Go to Quran" else "Quran", modifier = item)
                 SearchField(
                     value = query,
                     onValueChange = { vm.query.value = it },
                     placeholder = "Sūrah, verse 2:255, or a word",
                     modifier = item.padding(top = 10.dp, bottom = 8.dp),
                 )
-                if (!searching) {
+                if (!searching && !navigateToVerse) {
                     library.lastRead?.let { position ->
                         ContinueReadingCard(
                             position,
@@ -119,7 +126,7 @@ fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> U
         pinned = {
             if (!searching) {
                 Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
-                    PagerTabs(listOf("Sūrahs", "Juzʾ", "Bookmarks"), pager, item)
+                    PagerTabs(if (navigateToVerse) listOf("Sūrahs", "Juzʾ") else listOf("Sūrahs", "Juzʾ", "Bookmarks"), pager, item)
                 }
             }
         },
@@ -131,7 +138,7 @@ fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> U
                     horizontalAlignment = Alignment.CenterHorizontally,
                     contentPadding = listPadding,
                 ) {
-                    searchResults(query, vm, verseSearch, onOpenReader, item)
+                    searchResults(query, vm, verseSearch, onOpenReader, item, openSurah)
                 }
             } else {
                 HorizontalPager(
@@ -151,7 +158,7 @@ fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> U
                                 SurahRow(
                                     surah = surah,
                                     highlighted = library.lastRead?.surah == surah.number,
-                                    onClick = { onOpenReader(surah.number, 1) },
+                                    onClick = { openSurah(surah.number, 1) },
                                     modifier = item,
                                 )
                             }
@@ -183,6 +190,12 @@ fun QuranScreen(scrollToTop: Int = 0, onOpenReader: (surah: Int, ayah: Int) -> U
             }
         },
     )
+    pickAyahFor?.let { number ->
+        GoToVerseDialog(QuranMeta.surah(number), onDismiss = { pickAyahFor = null }, onGo = { ayah ->
+            pickAyahFor = null
+            onOpenReader(number, ayah)
+        })
+    }
 }
 
 private fun LazyListScope.searchResults(
@@ -191,6 +204,7 @@ private fun LazyListScope.searchResults(
     verseSearch: VerseSearch,
     onOpenReader: (Int, Int) -> Unit,
     item: Modifier,
+    openSurah: (Int, Int) -> Unit,
 ) {
     val ref = QuranMeta.parseRef(query)
     val surahs = vm.surahMatches(query)
@@ -215,7 +229,7 @@ private fun LazyListScope.searchResults(
     if (surahs.isNotEmpty()) {
         item(key = "surahLabel") { SectionLabel("Sūrahs", item.padding(vertical = 8.dp)) }
         items(surahs, key = { "ms${it.number}" }) { surah ->
-            SurahRow(surah, highlighted = false, onClick = { onOpenReader(surah.number, 1) }, modifier = item)
+            SurahRow(surah, highlighted = false, onClick = { openSurah(surah.number, 1) }, modifier = item)
         }
     }
     when (verseSearch) {

@@ -5,6 +5,7 @@ import com.mihraya.app.core.designsystem.icons.MihrayaIcons
 import kotlinx.serialization.Serializable
 
 @Serializable data object HomeRoute
+@Serializable data object QuranNavigationRoute
 @Serializable data object QuranRoute
 @Serializable data object ListenRoute
 @Serializable data object TasbihRoute

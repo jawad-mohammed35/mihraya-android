@@ -105,6 +105,10 @@ fun ReaderPreferencesPanel(
             format = { String.format(Locale.US, "%.1f×", it) },
             onChange = { v -> onChange { it.copy(lineHeight = v) } },
         )
+        if (prefs.script == QuranScript.Uthmani && prefs.arabicFont == ArabicFont.AmiriQuran && prefs.lineHeight < 2.45f) {
+            Text("Amiri Quran uses at least 2.45× line spacing to leave room for stacked Quranic marks.",
+                style = Mihraya.type.caption, color = colors.textTertiary)
+        }
         PreferenceSlider(
             label = "Translation size",
             value = prefs.translationSize,

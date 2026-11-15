@@ -8,6 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable data object QuranNavigationRoute
 @Serializable data object QuranRoute
 @Serializable data object ListenRoute
+@Serializable data object HadithRoute
+@Serializable data class HadithCollectionRoute(val collection: String)
+@Serializable data class HadithListRoute(val collection: String = "", val chapter: String = "", val bookmarks: Boolean = false)
+@Serializable data class HadithReaderRoute(val collection: String, val id: String)
 @Serializable data object TasbihRoute
 @Serializable data object MoreRoute
 
@@ -36,6 +40,6 @@ enum class TopLevel(val label: String, val icon: ImageVector, val selectedIcon: 
     Home("Home", MihrayaIcons.Home, MihrayaIcons.HomeFilled, HomeRoute),
     Quran("Quran", MihrayaIcons.Quran, MihrayaIcons.QuranFilled, QuranRoute),
     Listen("Listen", MihrayaIcons.Listen, MihrayaIcons.ListenFilled, ListenRoute),
+    Hadith("Hadith", MihrayaIcons.Hadith, MihrayaIcons.HadithFilled, HadithRoute),
     Tasbih("Tasbih", MihrayaIcons.TasbihOutlined, MihrayaIcons.Tasbih, TasbihRoute),
-    More("More", MihrayaIcons.More, MihrayaIcons.MoreFilled, MoreRoute),
 }

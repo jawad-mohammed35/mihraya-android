@@ -1,0 +1,23 @@
+# Hadith package maintenance
+
+The catalogue is a code-reviewed allowlist, not a public arbitrary-import API. Every edition must identify its source, revision, attribution, rights statement, numbering, audit limits, exact byte size and SHA-256. Do not add a collection just because an API lists it.
+
+`python tools/prepare_hadith.py` fetches the pinned upstream source, audits included and excluded editions, reproduces the bundled English packages, generates optional language packages under `build/hadith-packages/`, and writes `docs/hadith-source-audit.json`. It preserves source text exactly as Unicode. The source snapshot is cached under `build/hadith-source/`; raw cache files are not committed. Python 3 and network access are required. Inspect the audit and resulting diff before committing changes.
+
+The current catalogue contains all 42 Nawawi, 40 Qudsi and 40 Dehlawi records in their respective source editions. Every source ID is present once; Arabic and translation reference/number fields match. All rows are nonempty and free of U+FFFD. These are mechanical checks, not proof of canonical textual completeness, correctness of the upstream translation, or scholarly verification. The larger Arabic editions failed the encoding check; blank records and their original IDs are listed in the audit. They were not silently filtered to produce an apparently complete book. Riyad was explicitly waived by the user.
+
+English/Arabic packages are bundled (183,334 uncompressed bytes combined). On first launch they are streamed into a dedicated SQLite database off the main thread. Optional translation packages are hosted as assets on the v1.6.0 release. Upload every generated JSONL asset before publishing that release. URLs are fixed in the catalogue and package digests are pinned. No API key or server is needed to read installed books.
+
+## Package contract
+
+UTF-8 JSONL: one header (`type`, `schema=1`, `edition=collection:language`, `revision`), then all chapter records (`type=chapter`, `chapter={id,name,count}`), then all narration records (`type=hadith`, `hadith={id,chapter,number,arabic,translation,reference,grade?,narrator?,isnad?}`). `id` is the stable source identifier, including any suffixes; do not normalize it to an integer. Chapter order and identifiers follow the source. Full source/edition numbering is displayed and copied with citations. The current small collections each have one source section; no artificial topical chapters were introduced.
+
+The importer checks the header, unique IDs, chapter membership, counts, nonempty text and replacement characters. It streams bounded records, checks size and SHA-256 before parsing, and installs within one SQLite transaction. Cancellation or validation failure rolls back the install; interrupted transfers restart with bounded WorkManager retries. Translations must contain every base-edition record, matching its Arabic, source number, chapter, and citation; no silent partial translation installs are allowed. A missing preferred language falls back to English. Base-revision changes require an explicit coordinated content migration and stable-ID review; there is deliberately no destructive automatic migration.
+
+Content lives in `hadith-content.db`, independently of all existing settings, Quran, audio and Tasbih stores. Search and random-ID queries run on IO; result lists load 50 entries at a time. The current 122-record library needs no large search engine. A larger vetted corpus should add an FTS migration and be benchmarked before release. `hadith-user.json` stores bookmarks, collection reading anchors, preferred language and separate font sizes through the existing atomic DataStore mechanism. This user file is backed up; disposable content is excluded from cloud backup. Removing optional editions leaves bookmarks and reading anchors intact and vacuums freed database pages. Bundled text remains part of the APK.
+
+Verified structured narrator/chain/relationship fields may be added only when supplied and reviewed by the source. The current packages leave them empty. The reader never extracts or invents a chain or similarity relation.
+
+## Rights and attribution
+
+The upstream repository declares The Unlicense. Sunnah.com's own bulk-reproduction restrictions and the distinction between repository code licensing and translator/publisher rights were disclosed. The user explicitly directed offline use of UmmahAPI's declared source. This is a recorded implementation decision, not a legal determination or independent clearance. Preserve the upstream licence, NOTICE and catalogue attribution/limitations, including when sharing text. Do not describe translations as independently licensed or verified unless new evidence establishes that.

@@ -50,6 +50,7 @@ class AppContainer(private val app: Application) {
 
     val settings = SettingsRepository(app, json, appScope)
     val library = LibraryRepository(app, json, appScope)
+    val hadith = com.mihraya.app.data.hadith.HadithRepository(app, http, json, appScope)
     val prayerCalculator = PrayerCalculator()
     val location = LocationRepository(app, http, json)
     val quran = QuranRepository(app, http, json, appScope)
@@ -82,6 +83,7 @@ class AppContainer(private val app: Application) {
     }
 
     fun start() {
+        appScope.launch { hadith.ensureBundled() }
         appScope.launch {
             settings.flow
                 .map { Triple(it.location, it.prayer, it.alerts) to it.use24Hour }

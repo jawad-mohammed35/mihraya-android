@@ -55,9 +55,14 @@ private val pages = listOf(
         "Choose a reciter, stream a sūrah, or download it for later. Playback continues from the mini player.",
     ),
     TourPage(
+        MihrayaIcons.Hadith,
+        "Hadith",
+        "Browse the offline collections, keep Hadith bookmarks, or open a random narration. Optional translations can be downloaded from each collection.",
+    ),
+    TourPage(
         MihrayaIcons.Qibla,
         "Qibla",
-        "The compass on Home points toward the Kaʿbah and shows how far Makkah is, in kilometres or miles.",
+        "Open the compass beside your location on Home for the direction and distance to Makkah. More and settings are in Home's upper-right corner.",
     ),
     TourPage(
         MihrayaIcons.Tasbih,

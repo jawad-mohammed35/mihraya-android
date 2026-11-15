@@ -21,8 +21,9 @@ android {
         applicationId = "com.mihraya.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.5.0"
+        versionCode = 10
+        versionName = "1.6.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -38,6 +39,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Keep emulator/instrumentation installs separate from the user's signed app and data.
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -108,4 +113,6 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
 
     testImplementation(libs.junit)
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

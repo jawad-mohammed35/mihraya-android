@@ -39,6 +39,7 @@ private data class Credit(val title: String, val detail: String, val url: String
 
 private val contentSources = listOf(
     Credit("Quran text", "Uthmani script, via the Quran.com API (Quran Foundation)", "https://quran.com"),
+    Credit("Hadith", "Fawaz Ahmed's Hadith API, the source declared by UmmahAPI · edition df57907. Upstream declares The Unlicense; underlying translation rights and scholarly accuracy are not independently verified. Full attribution and audit limits are in each reader's source details and the repository NOTICE.", "https://github.com/jawad-mohammed35/mihraya-android/blob/main/docs/hadith-data.md"),
     Credit("Translations", "Saheeh International, Jalandhari, transliteration and downloadable editions, via the Quran.com API", "https://api-docs.quran.foundation"),
     Credit("Recitations", "Streamed and downloaded from the mp3quran.net library", "https://mp3quran.net"),
     Credit("Prayer times", "Adhan by Batoul Apps · MIT licence", "https://github.com/batoulapps/adhan-java"),
@@ -64,7 +65,7 @@ private val mediaCredits = listOf(
 private val licence = listOf(
     Credit(
         "Apache Licence 2.0",
-        "Mihraya's code and artwork. Quran text, translations, fonts and recordings keep their own licences.",
+        "Mihraya's code and artwork. Quran and Hadith texts, translations, fonts and recordings keep their own terms.",
         "https://github.com/jawad-mohammed35/mihraya-android",
     ),
 )
@@ -109,6 +110,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 "Location is approximate. The app does not request precise GPS, and it only checks again when you open it if the saved place is more than a few hours old.",
                 "City searches are sent to Open-Meteo. When detecting your location, Android's built-in geocoder looks up the city name.",
                 "Turning on the dua after the Adhan downloads one short recording from hisnmuslim.com.",
+                "Arabic and English Hadith are bundled. Optional Hadith translations download from GitHub release assets; reading, searching, bookmarks and random selection then work locally.",
                 "Settings, bookmarks, reading progress and tasbīḥ history stay on this device.",
             ).forEach { line ->
                 Row(Modifier.padding(vertical = 4.dp)) {

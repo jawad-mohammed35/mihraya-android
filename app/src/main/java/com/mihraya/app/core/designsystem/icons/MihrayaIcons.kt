@@ -12,6 +12,25 @@ import androidx.compose.ui.unit.dp
 
 object MihrayaIcons {
 
+    val Hadith: ImageVector by lazy {
+        icon("Hadith") {
+            stroke { roundRect(5f, 3.5f, 14f, 17f, 2f) }
+            stroke { moveTo(8.5f, 3.5f); lineTo(8.5f, 20.5f) }
+            stroke { moveTo(12f, 8f); lineTo(16f, 8f); moveTo(12f, 12f); lineTo(16f, 12f) }
+        }
+    }
+
+    val HadithFilled: ImageVector by lazy {
+        icon("HadithFilled") {
+            cutout {
+                roundRect(5f, 3.5f, 14f, 17f, 2f)
+                roundRect(8f, 5f, 1f, 14f, 0.5f)
+                roundRect(12f, 7.5f, 4f, 1f, 0.5f)
+                roundRect(12f, 11.5f, 4f, 1f, 0.5f)
+            }
+        }
+    }
+
     private fun icon(name: String, block: ImageVector.Builder.() -> Unit): ImageVector =
         ImageVector.Builder(name, 24.dp, 24.dp, 24f, 24f).apply(block).build()
 

@@ -11,6 +11,24 @@ terms and is not relicensed by this project.
 Bundled in this repository and in the app
 -----------------------------------------
 
+Hadith editions: app/src/main/assets/hadith/ and release translation packages
+  Fawaz Ahmed's Hadith API, also the upstream source declared by UmmahAPI.
+  Source revision: df57907be35291c91ad6a6691180e22ca9920784
+  Retrieved November 15, 2026.
+  https://github.com/fawazahmed0/hadith-api/tree/df57907be35291c91ad6a6691180e22ca9920784
+  https://ummahapi.com/api/hadith/collections
+  The upstream repository declares The Unlicense; its original text is preserved
+  in licenses/Hadith-API-Unlicense.txt. This is not an independent clearance of
+  underlying translation/publisher rights. The user requested offline use of
+  this source after the uncertainty was disclosed. No new rights are asserted.
+  Text is preserved verbatim as Unicode; conversion changes only packaging.
+  Source author metadata is not treated as proof of translation authorship.
+  Included: ara/eng-nawawi (42), ara/eng-qudsi (40), ara/eng-dehlawi (40).
+  Optional: fra/tur/ben-nawawi, fra-qudsi, fra-dehlawi.
+  Edition IDs, counts, SHA-256 hashes, numbering and structural audit limits
+  are recorded in the catalogue and docs/hadith-source-audit.json.
+  No scholarly verification or independent translator attribution is claimed.
+
 Quran text and translations: app/src/main/assets/quran/
   uthmani.txt                Quran text in the Uthmani script
   tr_20.txt                  Saheeh International (English)

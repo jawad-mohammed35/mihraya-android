@@ -89,6 +89,7 @@ data class HomeActions(
     val openLocation: () -> Unit,
     val openTasbih: () -> Unit,
     val openQibla: () -> Unit,
+    val openMore: () -> Unit,
     val openListen: () -> Unit,
 )
 
@@ -124,6 +125,7 @@ fun HomeScreen(actions: HomeActions) {
                     },
                     onLocation = actions.openLocation,
                     onQibla = actions.openQibla,
+                    onMore = actions.openMore,
                     modifier = item,
                 )
             }
@@ -216,32 +218,35 @@ private fun Header(
     subtitle: String,
     onLocation: () -> Unit,
     onQibla: () -> Unit,
+    onMore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = Mihraya.colors
     Column(modifier.windowInsetsPadding(WindowInsets.topChrome).padding(top = 14.dp, bottom = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable(onClick = onLocation)
-                    .padding(vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Rounded.LocationOn, null, tint = colors.accent, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    locationName ?: "Set location",
-                    style = Mihraya.type.label.copy(fontWeight = FontWeight.SemiBold),
-                    color = colors.textSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                Icon(Icons.Rounded.KeyboardArrowDown, null, tint = colors.textTertiary, modifier = Modifier.size(18.dp))
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.weight(1f, fill = false)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(onClick = onLocation)
+                        .heightIn(min = 48.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Rounded.LocationOn, null, tint = colors.accent, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        locationName ?: "Set location",
+                        style = Mihraya.type.label.copy(fontWeight = FontWeight.SemiBold),
+                        color = colors.textSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    Icon(Icons.Rounded.KeyboardArrowDown, null, tint = colors.textTertiary, modifier = Modifier.size(18.dp))
+                }
+                CircleIconButton(MihrayaIcons.Qibla, "Qibla direction", onQibla, size = 48.dp, filled = false, tint = colors.accent)
             }
-            CircleIconButton(MihrayaIcons.Qibla, "Qibla direction", onQibla, tint = colors.accent)
+            CircleIconButton(MihrayaIcons.More, "More and settings", onMore, size = 48.dp, tint = colors.accent)
         }
         Spacer(Modifier.height(12.dp))
         Text(

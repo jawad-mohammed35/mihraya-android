@@ -158,7 +158,7 @@ fun MihrayaRoot(
     }
 
     val entry by navController.currentBackStackEntryAsState()
-    val reading = entry?.destination?.hasRoute<ReaderRoute>() == true
+    val reading = entry?.destination?.hasRoute<ReaderRoute>() == true || entry?.destination?.hasRoute<HadithReaderRoute>() == true
     val context = LocalContext.current
     DisposableEffect(reading, playerExpanded) {
         (context as? Activity)?.requestedOrientation = if (reading && !playerExpanded) {
@@ -302,6 +302,7 @@ private fun MihrayaNavHost(
                     openLocation = { navController.navigate(LocationRoute) },
                     openTasbih = { navController.navigateTopLevel(TopLevel.Tasbih) },
                     openQibla = { navController.navigate(QiblaRoute) { launchSingleTop = true } },
+                    openMore = { navController.navigate(MoreRoute) { launchSingleTop = true } },
                     openListen = { navController.navigateTopLevel(TopLevel.Listen) },
                 ),
             )
@@ -325,8 +326,21 @@ private fun MihrayaNavHost(
             )
         }
         composable<TasbihRoute> { TasbihScreen() }
+        composable<HadithRoute> {
+            com.mihraya.app.feature.hadith.HadithHomeScreen(onNavigate = { navController.navigate(it) })
+        }
+        composable<HadithCollectionRoute> { entry ->
+            com.mihraya.app.feature.hadith.HadithCollectionScreen(entry.toRoute<HadithCollectionRoute>().collection, back) { navController.navigate(it) }
+        }
+        composable<HadithListRoute> { entry ->
+            com.mihraya.app.feature.hadith.HadithListScreen(entry.toRoute<HadithListRoute>(), back) { navController.navigate(it) }
+        }
+        composable<HadithReaderRoute> { entry ->
+            val route = entry.toRoute<HadithReaderRoute>()
+            com.mihraya.app.feature.hadith.HadithReaderScreen(route.collection, route.id, back)
+        }
         composable<MoreRoute> {
-            MoreScreen(onNavigate = { route -> navController.navigate(route) })
+            MoreScreen(onNavigate = { route -> navController.navigate(route) }, onBack = back)
         }
         composable<ReaderRoute> { entry ->
             val route = entry.toRoute<ReaderRoute>()

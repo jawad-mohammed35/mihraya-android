@@ -73,7 +73,7 @@ import com.mihraya.app.ui.TourRoute
 import com.mihraya.app.ui.TranslationsRoute
 
 @Composable
-fun MoreScreen(onNavigate: (Any) -> Unit) {
+fun MoreScreen(onNavigate: (Any) -> Unit, onBack: () -> Unit) {
     val container = LocalAppContainer.current
     val settings by container.settings.state.collectAsStateWithLifecycle()
     val installed by container.quran.installedTranslations.collectAsStateWithLifecycle()
@@ -90,7 +90,7 @@ fun MoreScreen(onNavigate: (Any) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = LocalBottomInset.current + 16.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
-        item { ScreenHeader("More", modifier = item) }
+        item { com.mihraya.app.core.designsystem.components.TopBar("More", onBack, modifier = item) }
 
         item {
             SettingsGroup("You", item) {

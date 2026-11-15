@@ -28,4 +28,6 @@ Data comes from the pinned Hadith API revision declared by UmmahAPI: `df57907be3
 
 57 JVM tests and the Android database/download integration test passed on Android 15/API 35. Lint and the signed/minified build passed. The signed update was installed over 1.5.0 without clearing data. Navigation, Qibla access, source browsing/search, bookmarks across restart, random selection, clipboard/share sheet and theme rendering were checked. See `docs/qa/1.6.0.md` for the exact checks and limits; no physical-device, older-Android or scholarly audit is claimed.
 
+After publication, all eight public text-package downloads were independently checked against their pinned sizes/digests. The signed app's real French download, language switching, cold offline reading, removal and English fallback were also verified. The existing Quran bookmark remained present.
+
 Install **Mihraya-1.6.0.apk** over your existing app. It uses the existing signing key. The JSONL attachments are checksum-pinned offline text/translation packages used by the app; they do not need to be installed manually. Previous releases are preserved.

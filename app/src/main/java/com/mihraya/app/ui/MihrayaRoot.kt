@@ -339,6 +339,9 @@ private fun MihrayaNavHost(
             val route = entry.toRoute<HadithReaderRoute>()
             com.mihraya.app.feature.hadith.HadithReaderScreen(route.collection, route.id, back)
         }
+        composable<ZakatRoute> { com.mihraya.app.feature.more.ZakatScreen(back) }
+        composable<NamesRoute> { com.mihraya.app.feature.more.NamesScreen(back) { navController.navigate(NamesLearnRoute) } }
+        composable<NamesLearnRoute> { com.mihraya.app.feature.more.NamesLearnScreen(back) }
         composable<MoreRoute> {
             MoreScreen(onNavigate = { route -> navController.navigate(route) }, onBack = back)
         }

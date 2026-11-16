@@ -50,7 +50,7 @@ fun HadithHomeScreen(onNavigate: (Any) -> Unit) {
     val collections = editions.filter { it.language == "en" }
     val state = rememberLazyListState()
     LazyColumn(Modifier.fillMaxSize(), state = state, contentPadding = libraryPadding(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { ScreenHeader("Hadith", subtitle = "Read, reflect, and keep your place") }
+        item { ScreenHeader("Hadith") }
         item { MihrayaTextField(query, { query = it }, "Search collections") }
         item { SecondaryButton("Search Hadith", { onNavigate(HadithListRoute()) }, Modifier.fillMaxWidth(), enabled = installed.isNotEmpty()) }
         item { SecondaryButton("Bookmarks · ${prefs.bookmarks.size}", { onNavigate(HadithListRoute(bookmarks = true)) }, Modifier.fillMaxWidth()) }

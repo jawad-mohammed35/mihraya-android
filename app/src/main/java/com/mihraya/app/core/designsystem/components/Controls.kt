@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -411,16 +412,18 @@ fun TopBar(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
+    mainHeader: Boolean = false,
+    horizontalPadding: Dp = 16.dp,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.topChrome)
-            .height(60.dp)
-            .padding(horizontal = 16.dp),
+            .heightIn(min = if (mainHeader) 72.dp else 60.dp)
+            .padding(horizontal = horizontalPadding, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        CircleIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "Back", onBack)
+        CircleIconButton(Icons.AutoMirrored.Rounded.ArrowBack, "Back", onBack, size = 48.dp)
         Column(
             Modifier
                 .weight(1f)
@@ -428,7 +431,7 @@ fun TopBar(
         ) {
             Text(
                 title,
-                style = Mihraya.type.title,
+                style = if (mainHeader) Mihraya.type.headline else Mihraya.type.title,
                 color = Mihraya.colors.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

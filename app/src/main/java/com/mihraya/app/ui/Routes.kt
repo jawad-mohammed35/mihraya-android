@@ -43,3 +43,7 @@ enum class TopLevel(val label: String, val icon: ImageVector, val selectedIcon: 
     Hadith("Hadith", MihrayaIcons.Hadith, MihrayaIcons.HadithFilled, HadithRoute),
     Tasbih("Tasbih", MihrayaIcons.TasbihOutlined, MihrayaIcons.Tasbih, TasbihRoute),
 }
+
+@Serializable data object ZakatRoute
+@Serializable data object NamesRoute
+@Serializable data object NamesLearnRoute

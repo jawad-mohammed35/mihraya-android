@@ -1,6 +1,6 @@
 # Mihraya
 
-Prayer times, Quran, recitation, Hadith, Qibla, and Tasbih for Android. The floating Liquid Glass bar blurs scrolling content on supported devices. Tap a tab or slide across the bar and release to switch sections. A moving lens previews your selection.
+Prayer times, Quran, recitation, Hadith, Qibla, Tasbih, Zakat and the 99 Names of Allah for Android. The floating Liquid Glass bar blurs scrolling content on supported devices. Tap a tab or slide across the bar and release to switch sections. A moving lens previews your selection.
 
 ## Features
 
@@ -24,6 +24,69 @@ The upstream repository declares The Unlicense, but that declaration does not in
 - **Home screen widgets** for prayer times, the next prayer, Qibla, verse of the day, last read, bookmarks, audio, and Tasbih. Choose Dark, Light, Transparent, or System separately for each widget. System follows Android’s day/night appearance and honors OLED Black at night. The Bookmarks widget adapts to its exact size, scrolls through saved verses, and offers a shortcut for Surah, Ayah, and Juz navigation.
 - **App shortcuts**: long-press the Mihraya icon to open Quran, Listen, or Tasbih directly, or drag a shortcut onto the home screen.
 - **Appearance**: Black, Light, or System theme, an optional OLED Black mode, and four accent colors.
+
+### Zakat Calculator
+
+Open **More → Zakat Calculator** to estimate annual Zakat with a detailed assets,
+short-term deductions, net wealth, Nisab and amount-due breakdown. Choose gold
+(87.48 g) or silver (612.36 g) Nisab and explicitly confirm the relevant lunar-year
+Hawl. Calculations use decimal arithmetic and a 2.5% rate, with due rounded to two
+decimal places. Negative net wealth is floored at zero; missing/invalid required
+prices prevent an estimate.
+
+Enter cash, bank savings, eligible investment portions, trade inventory,
+recoverable receivables, other eligible assets, and gold/silver weights in grams,
+troy ounces or tola. Gold supports 18/21/22/24 karat; silver uses fine-metal
+weights. Personal-use jewelry can be included/excluded according to the guidance
+you follow. Investment portions and short-term deductions are user-assessed;
+the tool does not automatically deduct entire long-term debts or determine
+asset-specific fiqh/Hawl rules. Consult a qualified scholar for your circumstances.
+Guidance: [Islamic Relief](https://islamic-relief.org/zakat-faq/).
+
+USD defaults to manual prices, with an explicit **Refresh market quotes** action
+using [Gold API](https://gold-api.com/docs). Each quote shows its source and
+provider timestamp, converted from USD/troy ounce using 31.1034768 grams. Quotes
+older than 24 hours are marked dated; no quote is described as streaming/live.
+Network failure retains the existing values and offers manual entry. EUR, GBP,
+CAD, INR, SAR and AED support manual prices; changing currency clears the draft
+after confirmation instead of silently converting monetary inputs.
+
+Save/load one calculation on the device, reset the draft, and copy/share a
+summary with prices, timestamps, assumptions and disclaimer. Nisab/currency
+preferences persist separately. The new shared-preferences file is independent
+of existing user data and excluded from Android cloud backup because it can
+contain financial amounts. Android 12+ device transfer can retain it. No asset
+amounts are sent to the price provider.
+
+### 99 Names of Allah
+
+Open **More → 99 Names of Allah** for the complete offline list with Arabic,
+transliteration, concise English meanings, normalized search, and centered
+copy/share dialogs using the existing Amiri font. The dataset is from
+[my-prayers/muslim-data](https://github.com/my-prayers/muslim-data-flutter),
+Copyright 2025 Kosrat Dlshad Ahmed, Apache 2.0. This established enumeration starts
+with Allah and does not separately enumerate Al-Ahad. Scholarly lists and English
+renderings differ; the app identifies its source and makes no claim of exclusive
+interpretation or independent scholarly review. See
+[the bundled source notice](app/src/main/assets/names/NOTICE.txt) and
+[original license](licenses/Names-muslim-data-Apache-2.0.txt).
+
+**Learn** offers Arabic/meaning matching and four-choice quizzes using only the
+bundled dataset. Choose 5, 10, 20, 50 or all 99 Names; Arabic → English, English →
+Arabic or Mixed; and source/random order. Matching uses rounds of at most five
+pairs. Feedback, progress, score/results, restarts, and preference-aware haptics
+are included. Completed quizzes, best percentage, correct matches and ten
+recently practiced Names are stored locally, without accounts. Active sessions
+survive Android saved-state recreation; unfinished quizzes do not count as
+completed. Theme surfaces and accents follow existing appearance settings.
+
+### Tests for More tools
+
+`./gradlew :app:testDebugUnitTest :app:connectedDebugAndroidTest :app:lintDebug`
+runs the existing regression suite plus calculator/quote/dataset/game tests and
+emulator UI tests. UI tests use a separate debug application ID and a prefixed
+preferences file. See [1.7.0 QA notes](docs/release-1.7.0-qa.md) for the tested
+configurations and remaining verification limits.
 
 ## Install
 
@@ -63,6 +126,7 @@ The Apache License covers Mihraya's own code and artwork. Some material in this 
 
 - Uthmani text and translations in `app/src/main/assets/quran/`, retrieved through the Quran.com API and subject to the [Quran Foundation Developer Terms](https://api-docs.quran.foundation/legal/developer-terms/) and each translator's rights.
 - IndoPak text and its paired font by Ayman Siddiqui and R. Siddiqua for QuranWBW.com and Quran.com. See the [publisher’s credits and terms](licenses/QuranWBW.txt).
+- 99 Names Arabic, transliteration and English meanings from my-prayers/muslim-data-flutter, Copyright 2025 Kosrat Dlshad Ahmed, under Apache 2.0; see [source notice](app/src/main/assets/names/NOTICE.txt).
 - Other fonts in `app/src/main/res/font/`, under the [SIL Open Font License 1.1](licenses/OFL-1.1.txt).
 - Hadith source editions in `app/src/main/assets/hadith/` and downloadable translation packages, from Fawaz Ahmed's Hadith API; see [upstream licence](licenses/Hadith-API-Unlicense.txt), [NOTICE](NOTICE), and the rights limitation above.
 - Adhan recordings in `app/src/main/res/raw/`, under CC0, CC BY 3.0, CC BY-SA 4.0, or the public domain, as listed in [NOTICE](NOTICE).

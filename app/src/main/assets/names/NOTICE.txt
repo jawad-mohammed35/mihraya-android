@@ -1,0 +1,16 @@
+99 Names of Allah — bundled source notice
+Copyright 2025 Kosrat Dlshad Ahmed
+Source: my-prayers/muslim-data-flutter (Apache License 2.0)
+https://github.com/my-prayers/muslim-data-flutter
+
+Arabic, transliteration, and English meaning fields extracted from the
+muslim-data SQLite dataset via UmmahLibrary's asma.json snapshot:
+https://github.com/UmmahLibrary/ummah-library/blob/1bdaae81467c2bec3532925fe097483d0658175c/packages/data/datasets/asma.json
+Retrieved November 16, 2026. Mihraya repackages only the four Names data fields;
+no code from the intermediary repository is incorporated. Original spelling,
+wording, numbering and vocalization are retained. See LICENSE.txt.
+
+This enumeration begins with Allah and does not separately list Al-Ahad.
+Scholarly enumerations, transliterations and English renderings differ.
+These concise meanings are learning aids, not exclusive interpretations.
+Structural and upstream comparison checks do not constitute scholarly review.

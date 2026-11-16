@@ -1,0 +1,18 @@
+{
+  "retrieved": "2026-11-16",
+  "source": "https://github.com/my-prayers/muslim-data-flutter",
+  "database": "assets/db/muslim_db_v2.7.0.db",
+  "upstreamBlob": "19fd1e4a407a2820d946d45a8fce9336e92326ed",
+  "databaseSha256": "3acf28e3977aad60408a7ad7e36fa1f1bf8d99786da0009154f2e9746aa3b3d3",
+  "bundledSha256": "7a46c6a1a86df39543d1ef9c7c059af7a9d784a7673dabf6a6f66de3b1266bec",
+  "count": 99,
+  "matchingFields": [
+    "number",
+    "arabic",
+    "transliteration",
+    "meaning"
+  ],
+  "originalDatabaseComparison": "All 396 field comparisons identical, including Arabic code points",
+  "license": "Apache-2.0; Copyright 2025 Kosrat Dlshad Ahmed",
+  "limits": "Structural and verbatim source comparison; not independent scholarly validation"
+}

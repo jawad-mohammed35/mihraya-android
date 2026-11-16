@@ -10,9 +10,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
+import com.mihraya.app.core.designsystem.components.sideChrome
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.rounded.Calculate
+import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.DownloadForOffline
@@ -85,12 +90,20 @@ fun MoreScreen(onNavigate: (Any) -> Unit, onBack: () -> Unit) {
     val item = Modifier.widthIn(max = 640.dp).fillMaxWidth()
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.sideChrome),
         horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = LocalBottomInset.current + 16.dp),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
-        item { com.mihraya.app.core.designsystem.components.TopBar("More", onBack, modifier = item) }
+        item { com.mihraya.app.core.designsystem.components.TopBar("More", onBack, modifier = item, mainHeader = true, horizontalPadding = 0.dp) }
+
+        item {
+            SettingsGroup("Explore & practice", item) {
+                SettingsValueRow("Zakat Calculator", "Annual estimate", { onNavigate(com.mihraya.app.ui.ZakatRoute) }, icon = Icons.Rounded.Calculate)
+                SettingsDivider(indent = true)
+                SettingsValueRow("99 Names of Allah", "Read & learn", { onNavigate(com.mihraya.app.ui.NamesRoute) }, icon = Icons.Rounded.AutoStories)
+            }
+        }
 
         item {
             SettingsGroup("You", item) {

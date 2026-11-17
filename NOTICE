@@ -29,6 +29,26 @@ Hadith editions: app/src/main/assets/hadith/ and release translation packages
   are recorded in the catalogue and docs/hadith-source-audit.json.
   No scholarly verification or independent translator attribution is claimed.
 
+Additional downloadable Hadith editions (v1.8.0)
+  HadithAPI.com, authenticated source snapshot retrieved November 17, 2026.
+  https://hadithapi.com/ and https://hadithapi.com/docs/hadiths
+  Bukhari (7276), Muslim (7564), Tirmidhi (3956), Abu Dawud (5274),
+  Ibn Majah (4341), Nasa'i (5761), and Mishkat (6293) Arabic source records.
+  The provider states that its API service is free for everyone. No explicit
+  public bulk/offline redistribution licence or request-rate limit was found.
+  The app owner authorized offline use after reviewing that public statement.
+  This is not independent clearance of translation/publisher rights, nor a
+  relicensing of this material under Mihraya's Apache 2.0 licence.
+  Source text, chapter titles, headings, numbering and narrator fields are
+  preserved. Provider status labels are attributed; no named grader is supplied.
+  Missing English is not invented: Bukhari 2 records, Tirmidhi 7, Nasa'i 2,
+  and all 6293 Mishkat records. Complete Urdu editions are offered for the six
+  collections with full Urdu coverage; Tirmidhi's incomplete Urdu is omitted.
+  See docs/hadithapi-audit.json and docs/hadithapi-packages.json for source
+  counts, exceptions, snapshot/package digests and audit limitations.
+  No scholarly textual or grading verification is claimed. The API credential
+  is used only in local source-import tooling and is not distributed.
+
 Quran text and translations: app/src/main/assets/quran/
   uthmani.txt                Quran text in the Uthmani script
   tr_20.txt                  Saheeh International (English)

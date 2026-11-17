@@ -34,6 +34,23 @@ class HadithValidationTest {
         rejected { text("1").copy(arabic = "").validate() }
         rejected { text("1").copy(translation = "").validate() }
     }
+    @Test fun explicitlyMissingTranslationRetainsArabicAndMustMatchEditionCoverage() {
+        val partial = edition.copy(translatedCount = 1)
+        val v = HadithPackageValidator(partial)
+        v.accept(HadithPackageLine("header", edition = partial.key, revision = partial.revision))
+        v.accept(chapter)
+        add(v, "1")
+        v.accept(HadithPackageLine("hadith", hadith = text("2").copy(translation = "", translationAvailable = false)))
+        v.finish()
+        rejected { text("2").copy(translationAvailable = false).validate() }
+        rejected {
+            validator().apply {
+                add(this, "1")
+                accept(HadithPackageLine("hadith", hadith = text("2").copy(translation = "", translationAvailable = false)))
+                finish()
+            }
+        }
+    }
     @Test fun rejectsUnicodeReplacementCharacters() {
         rejected { text("1").copy(arabic = "اختبار\ufffd").validate() }
         rejected { text("1").copy(translation = "TEST\ufffd").validate() }

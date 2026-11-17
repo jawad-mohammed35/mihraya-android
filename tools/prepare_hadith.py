@@ -105,7 +105,10 @@ def build():
                 'verification': f'All {count} source records matched by ID and in-book reference, with nonempty text and no Unicode replacement characters. Not a scholarly textual audit.',
                 'url': RELEASE + filename, 'sha256': hashlib.sha256(package).hexdigest(),
                 'bytes': len(package), 'count': count, 'chapters': len(chapters), 'bundledAsset': asset})
-    (ASSETS / 'catalogue.json').write_text(json.dumps(catalogue, ensure_ascii=False, indent=2) + '\n', encoding='utf8')
+    catalogue_file = ASSETS / 'catalogue.json'
+    if catalogue_file.exists():
+        catalogue += [c for c in json.loads(catalogue_file.read_text(encoding='utf8')) if c['source'].startswith('https://hadithapi.com')]
+    catalogue_file.write_text(json.dumps(catalogue, ensure_ascii=False, indent=2) + '\n', encoding='utf8')
     report = {'sourceRevision': SHA, 'retrieved': '2026-11-15', 'checks': reports,
               'includedCollections': list(NAMES), 'excludedLargerCollections': AUDIT_BOOKS,
               'limits': 'Structural/source equality checks only. No claim of scholarly verification or independent translation rights clearance. Blank upstream records were not silently removed to manufacture complete editions.'}

@@ -76,8 +76,8 @@ class HadithRepository(
     }
 
     suspend fun chapters(collection: String): List<HadithChapter> = withContext(Dispatchers.IO) {
-        database.readableDatabase.rawQuery("SELECT id,name,total FROM chapters WHERE collection=? ORDER BY position", arrayOf(collection)).use { c ->
-            buildList { while (c.moveToNext()) add(HadithChapter(c.getString(0), c.getString(1), c.getInt(2))) }
+        database.readableDatabase.rawQuery("SELECT id,name,total,arabic_name FROM chapters WHERE collection=? ORDER BY position", arrayOf(collection)).use { c ->
+            buildList { while (c.moveToNext()) add(HadithChapter(c.getString(0), c.getString(1), c.getInt(2), c.getString(3))) }
         }
     }
 
@@ -99,12 +99,18 @@ class HadithRepository(
             group.firstOrNull { it.language == language } ?: group.firstOrNull { it.language == "en" }
         }.filter { collection.isBlank() || it.collection == collection }
         val hits = mutableListOf<HadithHit>()
+        val tokens = Regex("[\\p{L}\\p{N}]+").findAll(foldHadith(query)).map { it.value }.toList()
+        if (query.isNotBlank() && tokens.isEmpty()) return@withContext emptyList()
+        val match = tokens.joinToString(" AND ") { "\"$it\"*" }
         val needle = "%" + foldHadith(query.trim()).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         for (edition in editions) {
             val args = mutableListOf(edition.collection, edition.language)
             var where = "collection=? AND language=?"
             if (chapter.isNotBlank()) { where += " AND chapter=?"; args += chapter }
-            if (query.isNotBlank()) { where += " AND search LIKE ? ESCAPE '\\'"; args += needle }
+            if (query.isNotBlank()) {
+                where += " AND rowid IN (SELECT docid FROM text_search WHERE text_search MATCH ?) AND search LIKE ? ESCAPE '\\'"
+                args += match; args += needle
+            }
             database.readableDatabase.rawQuery("SELECT * FROM texts WHERE $where ORDER BY position LIMIT ?", (args + (limit + 1).toString()).toTypedArray()).use { c ->
                 while (c.moveToNext() && hits.size <= limit) hits += HadithHit(edition.collection, edition.name, c.text(), edition.language)
             }
@@ -150,8 +156,9 @@ class HadithRepository(
                 }
                 db.setTransactionSuccessful()
             } finally { db.endTransaction() }
-            db.execSQL("VACUUM")
             changes.value++
+            // Reclaim free pages without rewriting the entire expanded library on every removal.
+            db.rawQuery("PRAGMA incremental_vacuum", null).use { while (it.moveToNext()) Unit }
         }
     }
 
@@ -206,7 +213,9 @@ class HadithRepository(
         try {
             db.delete("texts", "collection=? AND language=?", arrayOf(edition.collection, edition.language))
             if (edition.language == "en") db.delete("chapters", "collection=?", arrayOf(edition.collection))
-            file.bufferedReader(Charsets.UTF_8).use { input ->
+            val decoded = if (edition.compression == "gzip") java.util.zip.GZIPInputStream(file.inputStream()) else file.inputStream()
+            val bounded = PackageInputStream(decoded, edition.uncompressedBytes)
+            bounded.bufferedReader(Charsets.UTF_8).use { input ->
                 // Bound a single line before decoding, including malformed packages without newlines.
                 fun line(): String? {
                     val result = StringBuilder()
@@ -232,7 +241,7 @@ class HadithRepository(
                             val ch = checkNotNull(row.chapter)
                             require(ch.id.isNotBlank() && ch.name.isNotBlank() && ch.count > 0 && chapters.put(ch.id, ch) == null)
                             if (edition.language == "en") db.insertOrThrow("chapters", null, ContentValues().apply {
-                                put("collection", edition.collection); put("id", ch.id); put("name", ch.name); put("total", ch.count); put("position", chapters.size)
+                                put("collection", edition.collection); put("id", ch.id); put("name", ch.name); put("arabic_name", ch.arabicName); put("total", ch.count); put("position", chapters.size)
                             })
                         }
                         "hadith" -> {
@@ -247,7 +256,8 @@ class HadithRepository(
                                 put("collection", edition.collection); put("language", edition.language); put("id", h.id)
                                 put("chapter", h.chapter); put("number", h.number); put("arabic", h.arabic); put("translation", h.translation)
                                 put("reference", h.reference); put("grade", h.grade); put("narrator", h.narrator); put("isnad", h.isnad)
-                                put("position", count); put("search", foldHadith("${h.arabic} ${h.translation} ${h.reference} ${h.number}"))
+                                put("heading", h.heading); put("heading_arabic", h.headingArabic)
+                                put("position", count); put("search", foldHadith("${h.arabic} ${h.translation} ${h.reference} ${h.number} ${h.narrator} ${h.heading} ${h.headingArabic}"))
                             })
                             count++; require(count <= edition.count)
                             chapterCounts[h.chapter] = (chapterCounts[h.chapter] ?: 0) + 1
@@ -256,6 +266,7 @@ class HadithRepository(
                     }
                 }
             }
+            require(bounded.count == edition.uncompressedBytes) { "Uncompressed package size mismatch" }
             require(count == edition.count && chapters.size == edition.chapters)
             validator.finish()
             require(chapters.values.all { chapterCounts[it.id] == it.count }) { "Chapter counts mismatch" }
@@ -268,20 +279,57 @@ class HadithRepository(
     }
 }
 
-private fun Cursor.text(): HadithText {
-    fun field(name: String) = getString(getColumnIndexOrThrow(name))
-    return HadithText(field("id"), field("chapter"), field("number"), field("arabic"), field("translation"), field("reference"), field("grade"), field("narrator"), field("isnad"))
+/** Enforces the declared decompressed size while streaming; no full-book text allocation. */
+private class PackageInputStream(input: java.io.InputStream, private val maximum: Long) : java.io.FilterInputStream(input) {
+    var count = 0L
+        private set
+    private fun received(size: Int) {
+        if (size > 0) count += size
+        require(count <= maximum) { "Expanded package exceeds declared size" }
+    }
+    override fun read(): Int = `in`.read().also { if (it >= 0) received(1) }
+    override fun read(buffer: ByteArray, offset: Int, length: Int): Int = `in`.read(buffer, offset, length).also(::received)
 }
 
-private class HadithDatabase(context: Context) : SQLiteOpenHelper(context, "hadith-content.db", null, 1) {
+private fun Cursor.text(): HadithText {
+    fun field(name: String) = getString(getColumnIndexOrThrow(name))
+    return HadithText(field("id"), field("chapter"), field("number"), field("arabic"), field("translation"), field("reference"), field("grade"), field("narrator"), field("isnad"), field("translation").isNotBlank(), field("heading"), field("heading_arabic"))
+}
+
+private class HadithDatabase(context: Context) : SQLiteOpenHelper(context, "hadith-content.db", null, 2) {
+    override fun onConfigure(db: SQLiteDatabase) {
+        if (db.version == 0) db.execSQL("PRAGMA auto_vacuum=INCREMENTAL")
+    }
+    override fun onOpen(db: SQLiteDatabase) {
+        val vacuumMode = db.rawQuery("PRAGMA auto_vacuum", null).use { it.moveToFirst(); it.getInt(0) }
+        if (!db.isReadOnly && vacuumMode == 0) {
+            // One-time conversion of the previous small content cache; no user-state store is changed.
+            db.execSQL("PRAGMA auto_vacuum=INCREMENTAL")
+            db.execSQL("VACUUM")
+        }
+    }
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE editions(collection TEXT NOT NULL, language TEXT NOT NULL, metadata TEXT NOT NULL, PRIMARY KEY(collection,language))")
-        db.execSQL("CREATE TABLE chapters(collection TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL, total INTEGER NOT NULL, position INTEGER NOT NULL, PRIMARY KEY(collection,id))")
-        db.execSQL("CREATE TABLE texts(collection TEXT NOT NULL, language TEXT NOT NULL, id TEXT NOT NULL, chapter TEXT NOT NULL, number TEXT NOT NULL, arabic TEXT NOT NULL, translation TEXT NOT NULL, reference TEXT NOT NULL, grade TEXT NOT NULL, narrator TEXT NOT NULL, isnad TEXT NOT NULL, position INTEGER NOT NULL, search TEXT NOT NULL, PRIMARY KEY(collection,language,id))")
+        db.execSQL("CREATE TABLE chapters(collection TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL, total INTEGER NOT NULL, position INTEGER NOT NULL, arabic_name TEXT NOT NULL DEFAULT '', PRIMARY KEY(collection,id))")
+        db.execSQL("CREATE TABLE texts(collection TEXT NOT NULL, language TEXT NOT NULL, id TEXT NOT NULL, chapter TEXT NOT NULL, number TEXT NOT NULL, arabic TEXT NOT NULL, translation TEXT NOT NULL, reference TEXT NOT NULL, grade TEXT NOT NULL, narrator TEXT NOT NULL, isnad TEXT NOT NULL, position INTEGER NOT NULL, search TEXT NOT NULL, heading TEXT NOT NULL DEFAULT '', heading_arabic TEXT NOT NULL DEFAULT '', PRIMARY KEY(collection,language,id))")
         db.execSQL("CREATE INDEX chapter_lookup ON texts(collection,language,chapter,position)")
+        createSearch(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        error("Hadith schema migration required; never discard content implicitly")
+        if (oldVersion == 1 && newVersion == 2) {
+            db.execSQL("ALTER TABLE chapters ADD COLUMN arabic_name TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE texts ADD COLUMN heading TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE texts ADD COLUMN heading_arabic TEXT NOT NULL DEFAULT ''")
+            createSearch(db)
+            db.execSQL("INSERT INTO text_search(text_search) VALUES('rebuild')")
+        } else error("Hadith schema migration required; never discard content implicitly")
+    }
+    private fun createSearch(db: SQLiteDatabase) {
+        db.execSQL("CREATE VIRTUAL TABLE text_search USING fts4(search, content='texts', tokenize=unicode61)")
+        db.execSQL("CREATE TRIGGER texts_ai AFTER INSERT ON texts BEGIN INSERT INTO text_search(docid,search) VALUES(new.rowid,new.search); END")
+        db.execSQL("CREATE TRIGGER texts_bd BEFORE DELETE ON texts BEGIN DELETE FROM text_search WHERE docid=old.rowid; END")
+        db.execSQL("CREATE TRIGGER texts_bu BEFORE UPDATE ON texts BEGIN DELETE FROM text_search WHERE docid=old.rowid; END")
+        db.execSQL("CREATE TRIGGER texts_au AFTER UPDATE ON texts BEGIN INSERT INTO text_search(docid,search) VALUES(new.rowid,new.search); END")
     }
 }
 

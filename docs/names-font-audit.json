@@ -1,0 +1,29 @@
+{
+  "datasetChanged": false,
+  "fonts": [
+    {
+      "font": "amiri",
+      "namesChecked": 99,
+      "missingCodepoints": [],
+      "hheaSpanEm": 1.758,
+      "lineSpacingEm": 1.9,
+      "version": "Version 1.002"
+    },
+    {
+      "font": "noto_naskh_arabic",
+      "namesChecked": 99,
+      "missingCodepoints": [],
+      "hheaSpanEm": 1.703,
+      "lineSpacingEm": 1.9,
+      "version": "Version 2.021"
+    },
+    {
+      "font": "noto_nastaliq_urdu",
+      "namesChecked": 99,
+      "missingCodepoints": [],
+      "hheaSpanEm": 2.5,
+      "lineSpacingEm": 2.6,
+      "version": "Version 3.009"
+    }
+  ]
+}

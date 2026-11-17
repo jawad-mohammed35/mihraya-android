@@ -3,7 +3,7 @@ package com.mihraya.app.data.hadith
 import kotlinx.serialization.Serializable
 import java.text.Normalizer
 
-/** Only reviewed, rights-cleared editions belong in the bundled catalogue. */
+/** Reviewed source editions with explicit attribution and rights limitations. */
 @Serializable
 data class HadithEdition(
     val collection: String,
@@ -24,6 +24,9 @@ data class HadithEdition(
     val count: Int,
     val chapters: Int,
     val bundledAsset: String = "",
+    val translatedCount: Int = count,
+    val compression: String = "none",
+    val uncompressedBytes: Long = bytes,
 ) {
     val key get() = "$collection:$language"
     fun validate() {
@@ -33,6 +36,9 @@ data class HadithEdition(
         require(source.startsWith("https://") && url.startsWith("https://"))
         require(sha256.matches(Regex("[a-f0-9]{64}")))
         require(bytes in 1..MAX_PACKAGE_BYTES && count in 1..100_000 && chapters in 1..10_000)
+        require(translatedCount in 0..count)
+        require(compression in listOf("none", "gzip") && uncompressedBytes in 1..MAX_PACKAGE_BYTES)
+        require(compression != "none" || uncompressedBytes == bytes)
         require(bundledAsset.isBlank() || bundledAsset.matches(Regex("hadith/[a-z0-9-]+\\.jsonl")))
     }
 }
@@ -40,7 +46,7 @@ data class HadithEdition(
 const val MAX_PACKAGE_BYTES = 100L * 1024 * 1024
 
 @Serializable
-data class HadithChapter(val id: String, val name: String, val count: Int)
+data class HadithChapter(val id: String, val name: String, val count: Int, val arabicName: String = "")
 
 /** JSONL lines: header, chapters, then records. No inferred references or grades. */
 @Serializable
@@ -64,9 +70,13 @@ data class HadithText(
     val grade: String = "",
     val narrator: String = "",
     val isnad: String = "",
+    val translationAvailable: Boolean = true,
+    val heading: String = "",
+    val headingArabic: String = "",
 ) {
     fun validate() {
-        require(listOf(id, chapter, number, arabic, translation, reference).all { it.isNotBlank() })
+        require(listOf(id, chapter, number, arabic, reference).all { it.isNotBlank() })
+        require(if (translationAvailable) translation.isNotBlank() else translation.isEmpty())
         require(arabic.any { it in '\u0621'..'\u064a' })
         require('\ufffd' !in arabic && '\ufffd' !in translation) { "Damaged source text" }
     }
@@ -106,6 +116,7 @@ class HadithPackageValidator(private val edition: HadithEdition) {
     private val chapters = linkedMapOf<String, HadithChapter>()
     private val ids = hashSetOf<String>()
     private val counts = mutableMapOf<String, Int>()
+    private var translated = 0
     fun accept(line: HadithPackageLine) {
         if (!header) {
             require(line.type == "header" && line.schema == 1 && line.edition == edition.key && line.revision == edition.revision)
@@ -122,6 +133,7 @@ class HadithPackageValidator(private val edition: HadithEdition) {
             "hadith" -> {
                 val h = requireNotNull(line.hadith)
                 h.validate()
+                if (h.translationAvailable) translated++
                 require(h.chapter in chapters && ids.add(h.id) && ids.size <= edition.count)
                 counts[h.chapter] = (counts[h.chapter] ?: 0) + 1
                 require(counts.getValue(h.chapter) <= chapters.getValue(h.chapter).count)
@@ -131,6 +143,7 @@ class HadithPackageValidator(private val edition: HadithEdition) {
     }
     fun finish() {
         require(header && ids.size == edition.count && chapters.size == edition.chapters)
+        require(translated == edition.translatedCount)
         require(chapters.values.all { counts[it.id] == it.count })
     }
 }

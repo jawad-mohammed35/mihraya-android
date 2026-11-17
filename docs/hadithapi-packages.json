@@ -1,0 +1,106 @@
+[
+  {
+    "file": "hadithapi-bukhari-en.jsonl.gz",
+    "records": 7276,
+    "translations": 7274,
+    "compressedBytes": 3296829,
+    "uncompressedBytes": 15209139,
+    "sha256": "dbf7fe4d595bb032f342adb8157968f2ff55d551d9001d9553750a3d608c8231"
+  },
+  {
+    "file": "hadithapi-bukhari-ur.jsonl.gz",
+    "records": 7276,
+    "translations": 7276,
+    "compressedBytes": 3965781,
+    "uncompressedBytes": 20303774,
+    "sha256": "dd807bba268f4bc19e90f047c986afae34a2d213d48a919b919c614763c5971c"
+  },
+  {
+    "file": "hadithapi-muslim-en.jsonl.gz",
+    "records": 7564,
+    "translations": 7564,
+    "compressedBytes": 2525053,
+    "uncompressedBytes": 13931006,
+    "sha256": "5a99ed52c93807f99f4f10ab12eae932cf70c3d86816aa6ec0e4080a762a7cc4"
+  },
+  {
+    "file": "hadithapi-muslim-ur.jsonl.gz",
+    "records": 7564,
+    "translations": 7564,
+    "compressedBytes": 3104256,
+    "uncompressedBytes": 17822355,
+    "sha256": "d4391c906bb5f55a57a0931bf35c13231aee0f810586c8a450077fbf4c532f7c"
+  },
+  {
+    "file": "hadithapi-tirmidhi-en.jsonl.gz",
+    "records": 3956,
+    "translations": 3949,
+    "compressedBytes": 1564854,
+    "uncompressedBytes": 9117899,
+    "sha256": "f34a664fabc68dc5b9ac497488b5ce2b68ef04d206db7c1ced69722fea2487a7"
+  },
+  {
+    "file": "hadithapi-abudawud-en.jsonl.gz",
+    "records": 5274,
+    "translations": 5274,
+    "compressedBytes": 1915166,
+    "uncompressedBytes": 10663965,
+    "sha256": "987669c9ee46b49a6c0d9ac3601ef8dd7f379bc97a12c9da82391656f03ee59b"
+  },
+  {
+    "file": "hadithapi-abudawud-ur.jsonl.gz",
+    "records": 5274,
+    "translations": 5274,
+    "compressedBytes": 2302389,
+    "uncompressedBytes": 13257216,
+    "sha256": "c94eca094854e9ec6eb9229f9685fab1baf02a62145acb57e6cf359fd5babb63"
+  },
+  {
+    "file": "hadithapi-ibnmajah-en.jsonl.gz",
+    "records": 4341,
+    "translations": 4341,
+    "compressedBytes": 1287380,
+    "uncompressedBytes": 7677477,
+    "sha256": "d672a38793ced7ad3d5e62e39c23facc594df0d52fdb45748e72305598dd601a"
+  },
+  {
+    "file": "hadithapi-ibnmajah-ur.jsonl.gz",
+    "records": 4341,
+    "translations": 4341,
+    "compressedBytes": 1587141,
+    "uncompressedBytes": 9761993,
+    "sha256": "4eab38521341ce899b95fa82201b83cf1d221a9478eda5ff4b9808f8edbab82d"
+  },
+  {
+    "file": "hadithapi-nasai-en.jsonl.gz",
+    "records": 5761,
+    "translations": 5759,
+    "compressedBytes": 1655983,
+    "uncompressedBytes": 10894581,
+    "sha256": "e0b8a313b842059faf92a6f230c54a94fdfce7925e564793be484461247e03eb"
+  },
+  {
+    "file": "hadithapi-nasai-ur.jsonl.gz",
+    "records": 5761,
+    "translations": 5761,
+    "compressedBytes": 2073014,
+    "uncompressedBytes": 13705769,
+    "sha256": "cd488e3d763f68717527a8a8397375bffe19da88022a1e569a401e52527ff863"
+  },
+  {
+    "file": "hadithapi-mishkat-en.jsonl.gz",
+    "records": 6293,
+    "translations": 0,
+    "compressedBytes": 875290,
+    "uncompressedBytes": 6234403,
+    "sha256": "3887ae9e70cc863b31310ea71bf7bf565a150ec58b9514b91788ed880ba12108"
+  },
+  {
+    "file": "hadithapi-mishkat-ur.jsonl.gz",
+    "records": 6293,
+    "translations": 6293,
+    "compressedBytes": 1912686,
+    "uncompressedBytes": 10980056,
+    "sha256": "57e8dcc92d673a7b40ac14374d1ec83ee6342cc484c1f470d632cd17d2db6d51"
+  }
+]

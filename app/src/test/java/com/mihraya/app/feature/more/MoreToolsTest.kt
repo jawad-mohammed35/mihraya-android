@@ -8,6 +8,14 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 class MoreToolsTest {
+    @Test fun namesFontFallbackAndMetricSpacing() {
+        assertEquals(NamesArabicFont.Amiri, NamesArabicFont.fromStored(null))
+        assertEquals(NamesArabicFont.Amiri, NamesArabicFont.fromStored("unsupported"))
+        NamesArabicFont.entries.forEach { assertEquals(it, NamesArabicFont.fromStored(it.name)) }
+        assertTrue(NamesArabicFont.Nastaliq.lineSpacing >= 2.5f)
+        assertTrue(NamesArabicFont.Amiri.lineSpacing >= 1.758f)
+        assertTrue(NamesArabicFont.NotoNaskh.lineSpacing >= 1.703f)
+    }
     private val base = ZakatInput(goldPrice = "100", silverPrice = "1", hawl = true)
     private fun equal(expected: String, actual: BigDecimal) { assertEquals(0, BigDecimal(expected).compareTo(actual)) }
     private fun result(input: ZakatInput) = requireNotNull(ZakatCalculator.calculate(input))

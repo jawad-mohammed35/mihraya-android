@@ -132,6 +132,7 @@ fun HadithCollectionScreen(collection: String, onBack: () -> Unit, onNavigate: (
                 items(chapters.filter { foldHadith(it.name).contains(foldHadith(query)) }, key = { "chapter:${it.id}" }) { chapter ->
                     GlassCard(onClick = { onNavigate(HadithListRoute(collection, chapter.id)) }) {
                         Text(chapter.name, style = Mihraya.type.titleSmall, color = Mihraya.colors.textPrimary)
+                        if (chapter.arabicName.isNotBlank()) Text(chapter.arabicName, modifier = Modifier.fillMaxWidth(), style = Mihraya.type.body.copy(fontFamily = ArabicFonts.Amiri, textDirection = TextDirection.Rtl, textAlign = TextAlign.Right, lineHeight = 36.sp), color = Mihraya.colors.textSecondary)
                         Text("${chapter.count} Hadith", style = Mihraya.type.caption, color = Mihraya.colors.textTertiary)
                     }
                 }
@@ -147,7 +148,7 @@ fun HadithCollectionScreen(collection: String, onBack: () -> Unit, onNavigate: (
                     Text("${String.format(java.util.Locale.ROOT, "%.1f", edition.bytes / 1048576.0)} MB · ${if (exists) "Available offline" else "Not downloaded"}", style = Mihraya.type.caption, color = Mihraya.colors.textSecondary)
                     Spacer(Modifier.height(8.dp))
                     when {
-                        running -> SecondaryButton("${work!!.progress.getInt("percent", 0)}% · Cancel", { repo.cancel(edition) })
+                        running -> SecondaryButton(if (work!!.progress.getInt("percent", 0) >= 100) "Installing · Cancel" else "${work.progress.getInt("percent", 0)}% · Cancel", { repo.cancel(edition) })
                         exists && edition.bundledAsset.isNotBlank() -> Text("Included with Mihraya", style = Mihraya.type.label, color = Mihraya.colors.accent)
                         exists -> SecondaryButton("Remove ${edition.languageName}", { removal = edition })
                         else -> PrimaryButton("Download ${edition.languageName}", { repo.download(edition) }, enabled = edition.language == "en" || ready)
@@ -213,7 +214,7 @@ fun HadithListScreen(route: HadithListRoute, onBack: () -> Unit, onNavigate: (An
                 items(results.take(limit), key = { "${it.collection}:${it.text.id}" }) { hit ->
                     GlassCard(onClick = { onNavigate(HadithReaderRoute(hit.collection, hit.text.id)) }) {
                         Text(hit.text.reference, style = Mihraya.type.titleSmall, color = Mihraya.colors.accent)
-                        Text(hit.text.translation, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = Mihraya.type.body, color = Mihraya.colors.textPrimary)
+                        Text(if (hit.text.translationAvailable) hit.text.translation else "Translation unavailable in this source · Arabic text available", maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = Mihraya.type.body, color = Mihraya.colors.textPrimary)
                     }
                 }
                 if (results.size > limit) item { SecondaryButton("Load more", { limit += 50 }, Modifier.fillMaxWidth()) }
@@ -260,6 +261,8 @@ fun HadithReaderScreen(collection: String, id: String, onBack: () -> Unit) {
                     Text(h.text.reference, style = Mihraya.type.title, color = Mihraya.colors.accent)
                     Text(chapter, style = Mihraya.type.bodySmall, color = Mihraya.colors.textSecondary)
                     Text("Hadith ${h.text.number}", style = Mihraya.type.caption, color = Mihraya.colors.textTertiary)
+                    if (h.text.heading.isNotBlank()) Text(h.text.heading, style = Mihraya.type.bodySmall, color = Mihraya.colors.textSecondary)
+                    if (h.text.headingArabic.isNotBlank()) Text(h.text.headingArabic, modifier = Modifier.fillMaxWidth(), style = Mihraya.type.body.copy(fontFamily = ArabicFonts.Amiri, textDirection = TextDirection.Rtl, textAlign = TextAlign.Right, lineHeight = 36.sp), color = Mihraya.colors.textSecondary)
                 }
                 item {
                     val bookmarked = prefs.bookmarks.any { it.collection == collection && it.id == id }
@@ -296,9 +299,9 @@ fun HadithReaderScreen(collection: String, id: String, onBack: () -> Unit) {
                 item {
                     GlassCard {
                         Text(edition?.languageName ?: "English", style = Mihraya.type.overline, color = Mihraya.colors.accent)
-                        if (h.language != prefs.language) Text("Preferred translation unavailable; showing English.", style = Mihraya.type.caption, color = Mihraya.colors.textTertiary)
+                        if (h.language != prefs.language) Text(if (h.text.translationAvailable) "Preferred translation unavailable; showing English." else "Preferred translation unavailable; showing the original Arabic.", style = Mihraya.type.caption, color = Mihraya.colors.textTertiary)
                         Spacer(Modifier.height(12.dp))
-                        Text(h.text.translation, color = Mihraya.colors.textPrimary, style = Mihraya.type.body.copy(fontSize = prefs.translationSize.sp, lineHeight = (prefs.translationSize * 1.7f).sp, textDirection = if (edition?.rtl == true) TextDirection.Rtl else TextDirection.Ltr))
+                        Text(if (h.text.translationAvailable) h.text.translation else "Translation unavailable for this narration in the source edition. The original Arabic is shown above.", color = Mihraya.colors.textPrimary, style = Mihraya.type.body.copy(fontSize = prefs.translationSize.sp, lineHeight = (prefs.translationSize * 1.7f).sp, textDirection = if (edition?.rtl == true) TextDirection.Rtl else TextDirection.Ltr))
                     }
                 }
                 if (h.text.grade.isNotBlank()) item { LibraryNote("Grading (as provided by source)\n${h.text.grade}") }
@@ -314,7 +317,9 @@ fun HadithReaderScreen(collection: String, id: String, onBack: () -> Unit) {
 }
 
 private fun shareText(hit: HadithHit, edition: HadithEdition?) = buildString {
-    append(hit.text.arabic); append("\n\n"); append(hit.text.translation)
+    append(hit.text.arabic); append("\n\n")
+    if (hit.text.narrator.isNotBlank()) append("${hit.text.narrator}\n")
+    append(if (hit.text.translationAvailable) hit.text.translation else "[Translation unavailable in the source edition]")
     append("\n\n"); append(hit.text.reference)
     if (hit.text.grade.isNotBlank()) append("\n${hit.text.grade}")
     edition?.let { append("\n\n${it.attribution}\n${it.source}\nEdition: ${it.revision} · ${it.numbering}") }
@@ -326,7 +331,7 @@ private fun SourceInfo(edition: HadithEdition) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         LibraryNote("Hadith API · ${edition.languageName} · ${edition.revision.take(7)}")
         SecondaryButton(if (expanded) "Hide source details" else "Source and edition", { expanded = !expanded })
-        if (expanded) LibraryNote("${edition.attribution}\n${edition.source}\nEdition: ${edition.revision}\nNumbering: ${edition.numbering}\n${edition.license}\n${edition.verification}")
+        if (expanded) LibraryNote("${edition.attribution}\n${edition.source}\nEdition: ${edition.revision}\nNumbering: ${edition.numbering}\nTranslations available: ${edition.translatedCount} of ${edition.count}\n${edition.license}\n${edition.verification}")
     }
 }
 

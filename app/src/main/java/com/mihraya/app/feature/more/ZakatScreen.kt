@@ -63,7 +63,12 @@ fun ZakatScreen(onBack: () -> Unit) {
     }
     SettingsScaffold("Zakat Calculator", onBack) {
         ToolCard("Your annual estimate") {
-            ToolText("Zakat is an obligation on qualifying wealth. Nisab is its minimum threshold; Hawl is one lunar year of qualifying ownership. This calculator estimates 2.5% when both conditions are confirmed.")
+            Text(result?.let { money(it.due) } ?: "—", style = Mihraya.type.headline, color = Mihraya.colors.accent)
+            when {
+                result == null -> ToolText("Enter required prices and valid amounts.")
+                !input.hawl -> ToolText("Hawl not confirmed")
+                !result.meetsNisab -> ToolText("Below Nisab")
+            }
             SecondaryButton("Currency · ${input.currency}", { currencySheet = true }, Modifier.fillMaxWidth())
             SegmentedControl(Nisab.entries.map { "${it.name} Nisab" }, input.method.ordinal, { change(input.copy(method = Nisab.entries[it])); store.preference(input.copy(method = Nisab.entries[it])) })
             ToolText("Gold: 87.48 g · Silver: 612.36 g of pure metal. Select the standard advised by your scholar.")
@@ -139,10 +144,6 @@ fun ZakatScreen(onBack: () -> Unit) {
             if (savedAt > 0) ToolText("Last saved: ${Date(savedAt)}. Unsaved edits do not replace your saved calculation.")
             SecondaryButton("Reset inputs", { reset = true }, Modifier.fillMaxWidth())
             if (message.isNotBlank()) ToolText(message, true)
-        }
-        ToolCard("Guidance & sources") {
-            ToolText("Rules differ between Islamic schools and personal circumstances, especially jewelry, shares, debts, and receivables. This is an estimate, not a fatwa. Confirm your assumptions with a qualified scholar.")
-            ToolText("Nisab and rate guidance: Islamic Relief Worldwide, islamic-relief.org/zakat-faq/. Market quotes: gold-api.com; USD per troy ounce converted using 31.1034768 g. Quotes older than 24 hours are marked dated, and may be outdated even before then.")
         }
     }
     if (reset) MihrayaDialog(title = "Reset current inputs?", message = "Your saved calculation and Nisab/currency preferences remain available. Save after resetting only if you want to replace the saved calculation.", onDismiss = { reset = false }, confirmText = "Reset", onConfirm = {

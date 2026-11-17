@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -92,12 +94,59 @@ class MoreFeaturesUiTest {
         compose.onAllNodesWithText("Allāh", substring = false).assertCountEquals(0)
         screenshot("names-search-oled")
     }
+    @Test fun namesFontOptionsPersistAndRenderTheSameTextInListAndPopup() {
+        content { NamesScreen({}, {}) }
+        val name = NamesData.load(context).first()
+        text("Source: my-prayers").assertDoesNotExist()
+        text("Asma ul Husna ·").assertDoesNotExist()
+        for (font in NamesArabicFont.entries) {
+            text("Arabic font ·").performScrollTo().performClick()
+            compose.onNodeWithText(font.label, substring = false).performClick()
+            text("Arabic font · ${font.label}").assertExists()
+            compose.runOnIdle { assertEquals(font, MoreStore(isolated).namesFont()) }
+            compose.onNodeWithText("1 · ${name.transliteration}").performScrollTo().performClick()
+            compose.onNode(hasText(name.arabic, substring = false) and hasAnyAncestor(isDialog())).assertIsDisplayed()
+            val pixels = compose.onNode(hasText("Copy", substring = false) and hasAnyAncestor(isDialog())).captureToImage().toPixelMap()
+            var ink = 0
+            for (y in 0 until pixels.height) for (x in 0 until pixels.width) if (pixels[x, y].luminance() > 0.5f) ink++
+            assertTrue("The Copy label must be painted, not only present in semantics", ink > 10)
+            screenshot("name-font-${font.name}")
+            text("Close").performScrollTo().performClick()
+        }
+        compose.runOnIdle {
+            val store = MoreStore(isolated)
+            store.saveZakat(ZakatInput(cash = "2345", silverPrice = "1", hawl = true))
+            store.record("font-qa-progress", listOf(1, 2, 3, 4, 5), false, 4)
+            store.setNamesFont(NamesArabicFont.Nastaliq)
+            val reopened = MoreStore(isolated)
+            assertEquals(NamesArabicFont.Nastaliq, reopened.namesFont())
+            assertEquals("2345", reopened.loadZakat().cash)
+            assertEquals(80, reopened.progress().bestPercent)
+        }
+    }
+    @Test fun nastaliqLongestNameIsReadableAtLargeFontScale() {
+        content {
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 1.5f)) {
+                Box(Modifier.width(320.dp).fillMaxHeight()) { NamesScreen({}, {}) }
+            }
+        }
+        compose.runOnIdle { MoreStore(isolated).setNamesFont(NamesArabicFont.Nastaliq) }
+        val name = NamesData.load(context)[84]
+        compose.onNode(hasSetTextAction()).performTextInput(name.transliteration)
+        compose.onNodeWithText("85 · ${name.transliteration}").performClick()
+        text("Share").performScrollTo().assertIsDisplayed()
+        screenshot("name-nastaliq-long-large")
+        text("Close").performScrollTo().performClick()
+    }
     @Test fun zakatManualCalculationSaveResetAndRestore() {
         content { ZakatScreen({}) }
         input("Silver price / gram", "1")
         input("Cash on hand", "1000")
         scrollClick("Hawl requirement has been met")
         text("Estimated Zakat due: $25.00").performScrollTo().assertIsDisplayed()
+        text("Guidance & sources").assertDoesNotExist()
+        text("Zakat is an obligation").assertDoesNotExist()
         screenshot("zakat-result-oled")
         scrollClick("Save calculation locally")
         compose.runOnIdle { assertEquals("1000", MoreStore(isolated).loadZakat().cash); assertTrue(MoreStore(isolated).loadZakat().hawl) }
@@ -106,6 +155,8 @@ class MoreFeaturesUiTest {
         text("Enter a positive price").performScrollTo().assertIsDisplayed()
         scrollClick("Load saved calculation")
         text("Estimated Zakat due: $25.00").performScrollTo().assertIsDisplayed()
+        text("Your annual estimate").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("$25.00", substring = false).assertIsDisplayed()
     }
     @Test fun quizFourChoicesFeedbackScoreAndSavedProgress() {
         content { NamesLearnScreen({}) }

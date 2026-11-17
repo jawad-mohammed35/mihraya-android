@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.mihraya.app.core.designsystem.components.*
-import com.mihraya.app.core.designsystem.theme.ArabicFonts
 import com.mihraya.app.core.designsystem.theme.Mihraya
 import com.mihraya.app.core.designsystem.theme.overlaySurface
 import com.mihraya.app.feature.settings.SettingsScaffold
@@ -35,15 +34,25 @@ import kotlin.random.Random
 
 @Composable
 internal fun ArabicName(text: String, modifier: Modifier = Modifier, large: Boolean = false) {
+    val font = LocalNamesArabicFont.current
+    val size = if (large) 40 else 27
     Text(text, modifier.fillMaxWidth(), color = Mihraya.colors.textPrimary,
-        style = Mihraya.type.body.copy(fontFamily = ArabicFonts.Amiri, fontSize = if (large) 40.sp else 27.sp,
-            lineHeight = if (large) 66.sp else 46.sp, textDirection = TextDirection.Rtl, textAlign = TextAlign.Center))
+        style = Mihraya.type.body.copy(fontFamily = font.family(), fontSize = size.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, letterSpacing = 0.sp,
+            platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = true),
+            lineHeight = (size * font.lineSpacing).sp, textDirection = TextDirection.Rtl, textAlign = TextAlign.Center))
 }
 @Composable
-fun NamesScreen(onBack: () -> Unit, onLearn: () -> Unit) {
+fun NamesScreen(onBack: () -> Unit, onLearn: () -> Unit) = NamesTypography { NamesContent(onBack, onLearn) }
+
+@Composable
+private fun NamesContent(onBack: () -> Unit, onLearn: () -> Unit) {
     val context = LocalContext.current
     val focus = LocalFocusManager.current
     val names = remember { NamesData.load(context) }
+    val store = remember(context) { MoreStore(context) }
+    val font = LocalNamesArabicFont.current
+    var pickFont by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var selected by rememberSaveable { mutableStateOf<Int?>(null) }
     Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.sideChrome)) {
@@ -51,10 +60,7 @@ fun NamesScreen(onBack: () -> Unit, onLearn: () -> Unit) {
         LazyColumn(contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = LocalBottomInset.current + 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             item { PrimaryButton("Learn", onLearn, Modifier.widthIn(max = 640.dp).fillMaxWidth()) }
-            item { Column(Modifier.widthIn(max = 640.dp).fillMaxWidth()) {
-                ToolText("Asma ul Husna · Arabic, transliteration & meaning")
-                ToolText("Source: my-prayers/muslim-data (Apache-2.0). This enumeration begins with Allah. Scholarly lists and English renderings differ; these are concise learning aids.")
-            } }
+            item { SecondaryButton("Arabic font · ${font.label}", { pickFont = true }, Modifier.widthIn(max = 640.dp).fillMaxWidth()) }
             item { SearchField(query, { query = it }, "Search Arabic, transliteration or meaning", Modifier.widthIn(max = 640.dp).fillMaxWidth()) }
             val filtered = names.filter { NamesData.fold("${it.arabic} ${it.transliteration} ${it.meaning}").contains(NamesData.fold(query)) }
             if (filtered.isEmpty()) item { ToolText("No Names match your search.") }
@@ -67,6 +73,8 @@ fun NamesScreen(onBack: () -> Unit, onLearn: () -> Unit) {
             }
         }
     }
+    if (pickFont) OptionSheet("Arabic font", NamesArabicFont.entries.map { SheetOption(it, it.label, it.description) }, font,
+        { store.setNamesFont(it); pickFont = false }, { pickFont = false })
     selected?.let { number ->
         val name = names.first { it.number == number }
         Dialog(onDismissRequest = { selected = null }) {
@@ -94,7 +102,10 @@ private data class LearnSession(
     val matched: List<Int> = emptyList(), val mistakes: Int = 0,
 )
 @Composable
-fun NamesLearnScreen(onBack: () -> Unit) {
+fun NamesLearnScreen(onBack: () -> Unit) = NamesTypography { NamesLearnContent(onBack) }
+
+@Composable
+private fun NamesLearnContent(onBack: () -> Unit) {
     val context = LocalContext.current
     val names = remember { NamesData.load(context) }
     val store = remember { MoreStore(context) }

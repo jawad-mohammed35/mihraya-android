@@ -40,9 +40,10 @@ private data class Credit(val title: String, val detail: String, val url: String
 private val contentSources = listOf(
     Credit("99 Names of Allah", "Arabic, transliteration and English meanings: my-prayers/muslim-data · Copyright 2025 Kosrat Dlshad Ahmed · Apache 2.0. Enumeration and English renderings vary between scholars and sources.", "https://github.com/my-prayers/muslim-data-flutter"),
     Credit("Zakat guidance", "Nisab: 87.48 g gold or 612.36 g silver; annual lunar-year rate: 2.5%. Estimates depend on the assumptions selected in the calculator.", "https://islamic-relief.org/zakat-faq/"),
-    Credit("Metal pricing", "Gold API spot quotes, requested only when you tap Refresh. Source timestamps and manual entry are shown in the calculator; asset amounts are never sent.", "https://gold-api.com/docs"),
+    Credit("Metal pricing", "Gold API spot quotes, requested only when you tap Refresh. USD/troy ounce is converted using 31.1034768 g. Source timestamps and manual entry are shown in the calculator; asset amounts are never sent.", "https://gold-api.com/docs"),
     Credit("Quran text", "Uthmani script, via the Quran.com API (Quran Foundation)", "https://quran.com"),
     Credit("Hadith", "Fawaz Ahmed's Hadith API, the source declared by UmmahAPI · edition df57907. Upstream declares The Unlicense; underlying translation rights and scholarly accuracy are not independently verified. Full attribution and audit limits are in each reader's source details and the repository NOTICE.", "https://github.com/jawad-mohammed35/mihraya-android/blob/main/docs/hadith-data.md"),
+    Credit("Additional Hadith collections", "HadithAPI.com · November 17, 2026 snapshot. Arabic source records, chapters, numbering and provider status labels are retained. English gaps are explicitly marked; Mishkat has no English in this source. The service describes free API access; explicit public offline redistribution terms and named graders/translators were not established. See each edition's source details and NOTICE.", "https://hadithapi.com/"),
     Credit("Translations", "Saheeh International, Jalandhari, transliteration and downloadable editions, via the Quran.com API", "https://api-docs.quran.foundation"),
     Credit("Recitations", "Streamed and downloaded from the mp3quran.net library", "https://mp3quran.net"),
     Credit("Prayer times", "Adhan by Batoul Apps · MIT licence", "https://github.com/batoulapps/adhan-java"),
@@ -113,7 +114,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 "Location is approximate. The app does not request precise GPS, and it only checks again when you open it if the saved place is more than a few hours old.",
                 "City searches are sent to Open-Meteo. When detecting your location, Android's built-in geocoder looks up the city name.",
                 "Turning on the dua after the Adhan downloads one short recording from hisnmuslim.com.",
-                "Arabic and English Hadith are bundled. Optional Hadith translations download from GitHub release assets; reading, searching, bookmarks and random selection then work locally.",
+                "Three small Hadith collections are bundled. Additional collections and translations download from GitHub release assets; reading, searching, bookmarks and random selection then work locally. No Hadith API credential is stored in this app.",
                 "Settings, bookmarks, reading progress and tasbīḥ history stay on this device.",
                 "Zakat calculations and Names learning progress are saved locally. Refreshing metal prices contacts api.gold-api.com; your asset amounts are never included in the request.",
             ).forEach { line ->

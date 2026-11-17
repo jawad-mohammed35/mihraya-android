@@ -23,6 +23,17 @@ object NamesData {
         .replace(Regex("\\p{M}+"), "").lowercase().replace("ٱ", "ا").replace(Regex("[^\\p{L}\\p{N}]"), "")
 }
 enum class Direction(val label: String) { ArabicToEnglish("Arabic → English"), EnglishToArabic("English → Arabic"), Mixed("Mixed") }
+
+/** Typography only: never substitutes or rewrites the Names dataset. */
+enum class NamesArabicFont(val label: String, val description: String, val lineSpacing: Float) {
+    Amiri("Amiri", "Current Arabic typeface", 1.9f),
+    Nastaliq("Nastaliq", "Noto Nastaliq Urdu; a South Asian style using the original Arabic text", 2.6f),
+    NotoNaskh("Noto Naskh", "Clear, traditional Arabic letterforms", 1.9f),
+    ;
+    companion object {
+        fun fromStored(value: String?) = entries.firstOrNull { it.name == value } ?: Amiri
+    }
+}
 @Serializable
 data class QuizQuestion(val nameId: Int, val arabicPrompt: Boolean, val choices: List<Int>) {
     fun correct(answerId: Int) = answerId == nameId
@@ -56,6 +67,16 @@ data class LearningProgress(val quizzes: Int = 0, val bestPercent: Int = 0, val 
 class MoreStore(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("more_tools_v1", Context.MODE_PRIVATE)
     private val json = Json { ignoreUnknownKeys = true }
+    fun namesFont() = NamesArabicFont.fromStored(prefs.getString("names_arabic_font", null))
+    fun setNamesFont(font: NamesArabicFont) { prefs.edit().putString("names_arabic_font", font.name).apply() }
+    fun observeNamesFont(onChange: (NamesArabicFont) -> Unit): () -> Unit {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "names_arabic_font") onChange(namesFont())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onChange(namesFont())
+        return { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
     fun loadZakat() = runCatching { json.decodeFromString<ZakatInput>(prefs.getString("zakat", null) ?: "") }.getOrDefault(ZakatInput(method = method(), currency = currency()))
     fun initialZakat(): ZakatInput = loadZakat().let {
         if (it.currency == currency()) it.copy(method = method()) else ZakatInput(method = method(), currency = currency())
